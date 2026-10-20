@@ -1,5 +1,22 @@
 ## 🇨🇳 中文更新日志 (Changelog - zh_CN)
 
+### 🚀 v26.1020.2
+#### 🎨 视觉与文档重构 (Visual & Documentation Redesign)
+- **全新海报与 README 架构重构**：
+  - 重新设计了 `assets/preview.svg` 海报大图，左侧突出展示 4 大核心亮点卡片（全景解锁矩阵大表、纯 Native 指令下发与并发保护、动态定向探测与状态感知、前台悬浮小组件），移除非必要底部文本。
+  - 彻底重构面向终端用户的 `README.md`，移除低层技术细节，新增标准 MIT License 许可证。
+- **严格限制悬浮小组件仅在前台页面展示**：
+  - 增强 `isAllowedFrontendRoute` 路由校验，处于 iframe 内或访问任何后台路径（`/admin`、`/terminal`、`matrix.html`、`preview.html`、`public.html`、`admin.html`、`/login`、`/settings` 等）时严格静默隐藏。
+  - 仅限在首页（`/`）与实例详情页（`/instance/:id`）展示，彻底消除在管理后台、解锁矩阵页面误显小组件的问题。
+  - 增加 `popstate` / `hashchange` 事件监听与 500ms 周期巡检，单页应用动态路由跳转时瞬间隐藏。
+- **版本规范与打包自动递增**：
+  - 沿用 `YY.MMDD.Patch`（如 `26.1020.2`）版本命名规范。
+  - `build.sh` 脚本在每次本地打包时自动递增末位版本号，并同步更新 `plugin/komari-plugin.json` 与 `v1.json`（自动计算 SHA-256 与下载链接）。
+- **工程目录精简**：
+  - 清理 `tools/` 目录下已不再需要的临时调试与上传脚本，保障代码整洁。
+
+### v26.1020.1 (Previous)
+
 ### 🚀 新增功能与矩阵大表 (Features & Unlock Matrix)
 - **后台全景大表「解锁矩阵」(Unlock Matrix Dashboard)**：
   - 新增管理后台专属页面 `pages/matrix.html`（通过 `komari-plugin.json` 的 `pages` 机制无缝挂载）。
@@ -28,6 +45,23 @@
 ---
 
 ## 🇬🇧 English Changelog (en)
+
+### 🚀 v26.1020.2
+#### 🎨 Visual & Documentation Redesign
+- **Poster & Documentation Redesign**:
+  - Re-architected `assets/preview.svg` poster layout to prominently feature 4 core highlight cards (Full Unlock Matrix, Pure Native Dispatch with OOM Shield, Dynamic Targeted Probing, Draggable Floating Widget) and removed redundant footer text.
+  - Completely rewrote user-facing `README.md` to focus on user experience and added the standard MIT License.
+- **Strict Route Isolation for Floating Widget**:
+  - Enhanced route detection logic (`isAllowedFrontendRoute`) to strictly hide the floating widget inside iframes or on any management/subpages (`/admin`, `/terminal`, `matrix.html`, `preview.html`, `public.html`, `admin.html`, `/login`, `/settings`).
+  - The widget now exclusively displays on the frontend home page (`/`) and instance detail pages (`/instance/:id`), eliminating visual interference on admin or matrix views.
+  - Integrated `popstate` / `hashchange` listeners and a 500ms safety poll to guarantee instant hiding upon client-side SPA navigation.
+- **Standardized Versioning & Automated Local Increments**:
+  - Standardized on `YY.MMDD.Patch` (e.g. `26.1020.2`) version format.
+  - `build.sh` automatically increments the patch number upon each local build, synchronizing `plugin/komari-plugin.json` and `v1.json` with updated SHA-256 hashes and download URLs.
+- **Project Structure Cleanup**:
+  - Cleaned up obsolete debug and upload scripts in the `tools/` directory.
+
+### v26.1020.1 (Previous)
 
 ### 🚀 Features & Unlock Matrix Dashboard
 - **Admin Unlock Matrix Dashboard (`pages/matrix.html`)**:
