@@ -97,7 +97,3 @@ EOF
 echo "Built package: $ZIP_FILE"
 echo "Root package:  $ROOT_ZIP"
 echo "SHA-256:       $SHA256"
-
-if [ -f "$ROOT_DIR/tools/upload_plugin.py" ] && [ -n "$KOMARI_AUTO_UPLOAD" ]; then
-  python3 "$ROOT_DIR/tools/upload_plugin.py"
-fi
