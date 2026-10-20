@@ -97,18 +97,47 @@ function normalizeConfig(rawCfg) {
 
 // 构造在目标 VPS 节点上执行的高可靠 Native shell 命令
 // 1. 设置完整 PATH 并以绝对路径识别 /usr/bin/unlock-test、/usr/local/bin/unlock-test 等
-// 2. 将输出写入持久化文件 /tmp/km-unlock-result.log 2>&1
+// 2. 每次运行使用独立私有目录保存输出与完成标记，并对远端执行加互斥锁
 // 3. 执行完毕后通过 cat 输出给 Komari 捕获并持久化保留日志供随时排查
-function buildRemoteCommand(normalizedCfg) {
+function validateRunId(runId) {
+  if (typeof runId !== "string" || !/^[a-zA-Z0-9-]{1,100}$/.test(runId)) throw new Error("Invalid run ID");
+  return runId;
+}
+
+function buildRecoveryCommand(runId) {
+  const dir = "/tmp/km-unlock-" + validateRunId(runId);
+  return 'RUN_DIR="' + dir + '"\n' +
+    'if [ ! -f "$RUN_DIR/exit" ]; then echo "Probe did not finish; no complete log available"; exit 1; fi\n' +
+    'code=$(cat "$RUN_DIR/exit"); cat "$RUN_DIR/output.log"; exit "$code"';
+}
+
+function buildCancelCommand(runId) {
+  return 'RUN_DIR="/tmp/km-unlock-' + validateRunId(runId) + '"\n' +
+    '[ -d "$RUN_DIR" ] && [ -O "$RUN_DIR" ] && touch "$RUN_DIR/cancel"';
+}
+
+function buildRemoteCommand(normalizedCfg, runId) {
+  validateRunId(runId);
   const baseFlags = "-region " + normalizedCfg.regionArg +
     (normalizedCfg.ipMode !== "0" ? " -m " + normalizedCfg.ipMode : "") + " -show-active=false";
   return [
     'export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/.local/bin:$PATH"',
     'export TERM=dumb NO_COLOR=1',
-    'LOG="/tmp/km-unlock-result.log"',
+    'umask 077',
+    'RUN_DIR="/tmp/km-unlock-' + runId + '"',
+    'mkdir "$RUN_DIR" || { echo "Run directory already exists"; exit 1; }',
+    'LOG="$RUN_DIR/output.log"',
+    'LOCK="/tmp/km-unlock-$(id -u).lock"',
+    'if ! mkdir "$LOCK" 2>/dev/null; then echo "Another unlock probe is running" > "$LOG"; echo 75 > "$RUN_DIR/exit"; cat "$LOG"; exit 75; fi',
+    'child=""; watcher=""',
+    '# cleanup is invoked by the EXIT trap',
+    '# shellcheck disable=SC2329',
+    'cleanup() { [ -z "$child" ] || kill "$child" 2>/dev/null; [ -z "$watcher" ] || kill "$watcher" 2>/dev/null; rm -f "$RUN_DIR/unlock-test"; rmdir "$LOCK" 2>/dev/null; }',
+    "trap 'cleanup' EXIT",
+    "trap 'exit 143' TERM INT HUP",
     'BIN=""',
     '# [旧版二进制兼容性检测]: 只有当二进制存在且支持 -region 参数时才复用，避免旧版参数报错 (如 LAX.AMD.OCI)',
-    'for candidate in /usr/bin/unlock-test /usr/local/bin/unlock-test "$HOME/.local/bin/unlock-test" /tmp/unlock-test; do',
+    'for candidate in /usr/bin/unlock-test /usr/local/bin/unlock-test "$HOME/.local/bin/unlock-test"; do',
     '  if [ -x "$candidate" ] && "$candidate" -h 2>&1 | grep -q -- "-region"; then BIN="$candidate"; break; fi',
     'done',
     'if [ -z "$BIN" ] && command -v unlock-test >/dev/null 2>&1; then',
@@ -117,10 +146,10 @@ function buildRemoteCommand(normalizedCfg) {
     'if [ -z "$BIN" ]; then',
     '  os=$(uname -s | tr "[:upper:]" "[:lower:]"); arch=$(uname -m)',
     '  case "$arch" in x86_64|amd64) arch=amd64;; aarch64|arm64) arch=arm64;; armv7*|armv8l) arch=arm7;; armv6*) arch=arm6;; i?86) arch=386;; *) echo "Unsupported architecture: $arch" > "$LOG"; cat "$LOG"; exit 1;; esac',
-    '  target="/tmp/unlock-test"',
-    '  [ -w /usr/bin ] && target="/usr/bin/unlock-test"',
+    '  target="$RUN_DIR/unlock-test"',
     '  url="https://unlock.icmp.ing/test/latest/unlock-test_${os}_${arch}"',
     '  if (curl -fsSL --connect-timeout 6 -m 30 "$url" -o "$target" || wget -q -T 8 "$url" -O "$target") && chmod +x "$target"; then BIN="$target"; fi',
+    '  if [ -n "$BIN" ] && [ -w /usr/bin ]; then cp "$BIN" /usr/bin/unlock-test 2>/dev/null || true; fi',
     'fi',
     '# [NAT 小内存 VPS 保护]: 检测内存，小于 360MB 时自适应降低并发为 5 并限制单线程，防止 OOM 报错 (如 US.VMISS)',
     'CONC="' + normalizedCfg.concurrency + '"',
@@ -129,18 +158,27 @@ function buildRemoteCommand(normalizedCfg) {
     '  export GOMAXPROCS=1',
     '  CONC=5',
     'fi',
-    'FLAGS="' + baseFlags + ' -conc $CONC"',
+    'set -- ' + baseFlags + ' -conc "$CONC"',
     'if [ -n "$BIN" ] && [ -x "$BIN" ]; then',
     '  if command -v timeout >/dev/null 2>&1; then',
-    '    timeout -k 5 240 "$BIN" $FLAGS </dev/null > "$LOG" 2>&1',
+    '    timeout -k 5 240 "$BIN" "$@" </dev/null > "$LOG" 2>&1 &',
     '  else',
-    '    "$BIN" $FLAGS </dev/null > "$LOG" 2>&1',
+    '    "$BIN" "$@" </dev/null > "$LOG" 2>&1 &',
     '  fi',
-    '  code=$?',
+    '  child=$!',
+    '  (elapsed=0; while kill -0 "$child" 2>/dev/null; do',
+    '    if [ -f "$RUN_DIR/cancel" ] || [ "$elapsed" -ge 240 ]; then kill "$child" 2>/dev/null; sleep 5; kill -9 "$child" 2>/dev/null; break; fi',
+    '    sleep 1; elapsed=$((elapsed + 1))',
+    '  done) &',
+    '  watcher=$!',
+    '  wait "$child"; code=$?; child=""',
+    '  kill "$watcher" 2>/dev/null; wait "$watcher" 2>/dev/null; watcher=""',
+    '  [ ! -f "$RUN_DIR/cancel" ] || code=130',
     'else',
     '  echo "ERROR: unlock-test binary not found or failed to download" > "$LOG"',
     '  code=127',
     'fi',
+    'echo "$code" > "$RUN_DIR/exit.tmp"; mv "$RUN_DIR/exit.tmp" "$RUN_DIR/exit"',
     'cat "$LOG"',
     'exit "$code"'
   ].join("\n");
@@ -152,6 +190,7 @@ function createProbeManager(server) {
   let isUnloaded = false;
   let dispatching = false;
   let cronRegistered = false;
+  let clientMetadata = null;
 
   function loadSnapshotFromDisk() {
     if (memorySnapshot) return memorySnapshot;
@@ -234,39 +273,35 @@ function createProbeManager(server) {
     return null; // 未知/老旧 Agent 或超时
   }
 
+  async function refreshClientMetadata() {
+    clientMetadata = null;
+    const clients = await server.call("admin:listClients");
+    if (!Array.isArray(clients)) throw new Error("Invalid client list");
+    const map = {};
+    clients.forEach(function (c) {
+      if (c && c.uuid) map[c.uuid] = { uuid: c.uuid, name: c.name || c.uuid,
+        group: c.group || "", region: c.region || "", hidden: Boolean(c.hidden) };
+    });
+    clientMetadata = map;
+    const snap = loadSnapshotFromDisk();
+    Object.keys(snap.nodes).forEach(function (uuid) {
+      if (!map[uuid]) delete snap.nodes[uuid];
+      else Object.assign(snap.nodes[uuid], {name: map[uuid].name, group: map[uuid].group,
+        nodeRegion: map[uuid].region, hidden: map[uuid].hidden});
+    });
+    return map;
+  }
+
   async function resolveOnlineTargetNodes(normalizedCfg, requestedUUIDs) {
-    let allClients = [];
+    const clientNameMap = await refreshClientMetadata();
+    const allClients = Object.keys(clientNameMap);
     let statusMap = {};
     try {
-      const cls = await server.call("admin:listClients");
-      if (Array.isArray(cls)) allClients = cls;
-    } catch (e) {
-      log("warn", "admin:listClients RPC failed", { error: e && e.message ? e.message : String(e) });
-    }
-
-    try {
-      const latest = await server.call("common:getNodesLatestStatus");
-      if (latest && typeof latest === "object") statusMap = latest;
-    } catch (e) {
-      log("warn", "common:getNodesLatestStatus RPC failed", { error: e && e.message ? e.message : String(e) });
-    }
-
-    const clientNameMap = {};
-    for (let i = 0; i < allClients.length; i++) {
-      const c = allClients[i];
-      if (c && c.uuid) {
-        clientNameMap[c.uuid] = {
-          uuid: c.uuid,
-          name: c.name || c.uuid,
-          group: c.group || "",
-          region: c.region || "",
-          hidden: Boolean(c.hidden)
-        };
-      }
-    }
+      statusMap = await server.call("common:getNodesLatestStatus") || {};
+    } catch (err) { log("warn", "Unable to resolve online nodes", {error: String(err)}); }
 
     // 显式指定的单节点直接放行，不被 statusMap 过滤
-    if (Array.isArray(requestedUUIDs) && requestedUUIDs.length > 0) {
+    if (Array.isArray(requestedUUIDs)) {
       const explicitUUIDs = requestedUUIDs.filter(function (uuid, index, list) {
         return typeof uuid === "string" && clientNameMap[uuid] && list.indexOf(uuid) === index;
       });
@@ -296,8 +331,8 @@ function createProbeManager(server) {
       }
     }
 
-    // 若 onlineUUIDs 为空（如 Agent 未报送 online 字段），回退到全部候选节点，避免整体跳过
-    const finalUUIDs = onlineUUIDs.length > 0 ? onlineUUIDs : candidateUUIDs;
+    // 无在线节点时保持空集合，避免定时任务误向离线节点下发。
+    const finalUUIDs = onlineUUIDs.filter(function (uuid) { return Boolean(clientNameMap[uuid]); });
     log("info", "Resolved target nodes for probe", {
       totalClients: allClients.length,
       candidateCount: candidateUUIDs.length,
@@ -377,6 +412,7 @@ function createProbeManager(server) {
       error = "Exit " + exitCode + ": " + (stripped.slice(0, 400) || "Empty task output");
     }
 
+    if (!isCurrent(task)) return;
     snap.nodes[uuid] = {
       uuid: uuid, name: meta.name || old.name || uuid,
       group: meta.group || old.group || "", nodeRegion: meta.region || old.nodeRegion || "",
@@ -402,7 +438,7 @@ function createProbeManager(server) {
       if (!isCurrent(task)) return;
       let pollError = "";
       try {
-        const info = await server.call("admin:getTaskById", { task_id: task.taskId });
+        const info = await server.call("admin:getTaskById", { task_id: task.recoveryTaskId || task.taskId });
         if (!isCurrent(task)) return;
         if (!info || !Array.isArray(info.results)) throw new Error("Invalid task response: results must be an array");
         for (let i = 0; i < info.results.length; i++) {
@@ -415,6 +451,7 @@ function createProbeManager(server) {
         task.lastPollError = pollError;
         log("warn", "Task result query failed", { taskId: task.taskId, error: pollError });
       }
+      if (!isCurrent(task)) return;
       task.elapsedSeconds = Math.round((Date.now() - Date.parse(task.startedAt)) / 1000);
       task.lastPolledAt = new Date().toISOString();
 
@@ -427,18 +464,26 @@ function createProbeManager(server) {
       saveSnapshotToDisk(loadSnapshotFromDisk());
 
       if (Date.now() >= Date.parse(task.deadlineAt)) {
-        // 超时时对未完成节点探测是否因 --disable-web-ssh
-        const snap = loadSnapshotFromDisk();
-        for (const uuid of pendingClients(task)) {
-          const webSshActive = await checkNodeWebSsh(uuid);
-          if (webSshActive === false) {
-            snap.nodes[uuid] = Object.assign({}, snap.nodes[uuid] || {}, {
-              webSshDisabled: true,
-              error: "节点已开启 --disable-web-ssh，远程命令下发已被禁用"
+        if (task.runId && task.phase !== "recovering") {
+          // Read only this run's completed log; never re-run the provider tests.
+          task.phase = "recovering";
+          task.deadlineAt = new Date(Date.now() + 60000).toISOString();
+          saveSnapshotToDisk(loadSnapshotFromDisk());
+          try {
+            const recovery = await server.call("admin:exec", {
+              command: buildRecoveryCommand(task.runId), clients: pendingClients(task)
             });
+            if (!isCurrent(task)) return;
+            if (!recovery || !recovery.task_id) throw new Error("Recovery dispatch returned no task ID");
+            task.recoveryTaskId = String(recovery.task_id);
+            saveSnapshotToDisk(loadSnapshotFromDisk());
+            pollTaskUntilDone(task);
+          } catch (err) {
+            finishTask(task, "Task query timed out: " + (pollError || String(err)));
           }
+        } else {
+          finishTask(task, pollError ? "Task query timed out: " + pollError : "Timed out waiting for Agent task results");
         }
-        finishTask(task, pollError ? "Task query timed out: " + pollError : "Timed out waiting for Agent task results. (Check if node enabled --disable-web-ssh)");
       } else {
         pollTaskUntilDone(task);
       }
@@ -451,24 +496,26 @@ function createProbeManager(server) {
   }
 
   // 手动/定时触发探测调度入口
-  // 支持 opts.cancel (手动终止任务) 与 opts.force (前台强制打断旧任务开启新任务)
+  // 取消请求发送到远端，保留任务跟踪直到 Agent 确认结束；重复/force 请求不会并发重启。
   async function triggerProbe(options) {
     const opts = options || {};
     const snap = loadSnapshotFromDisk();
     const current = snap.activeTask;
 
-    if (opts.cancel && current) {
-      log("warn", "Manually cancelling active task", { taskId: current.taskId });
-      finishTask(current, "Task manually cancelled by user");
-      return { triggered: false, cancelled: true, message: "Active task cancelled" };
+    if (opts.cancel) {
+      if (!current) return { triggered: false, cancelled: true, message: "No active task to cancel" };
+      if (!current.runId) return { triggered: false, reason: "already_running", message: "Legacy task is still running; wait for its deadline" };
+      if (!current.cancelRequested) {
+        current.cancelRequested = true;
+        try {
+          await server.call("admin:exec", {command: buildCancelCommand(current.runId), clients: pendingClients(current)});
+        } catch (err) { current.cancelRequested = false; throw err; }
+        saveSnapshotToDisk(snap);
+      }
+      return { triggered: false, cancelled: true, message: "Cancellation requested; waiting for Agent completion" };
     }
-
-    if (opts.force && current) {
-      log("warn", "Forcing abort of active task to start new probe", { taskId: current.taskId });
-      finishTask(current, "Task aborted by forced probe request");
-    } else if (dispatching || current) {
-      return { triggered: false, reason: "already_running", taskId: current && current.taskId };
-    }
+    // A force request must not abandon a process that is still running remotely.
+    if (dispatching || current) return { triggered: false, reason: "already_running", taskId: current && current.taskId };
 
     if (isUnloaded) return { triggered: false, reason: "unloaded" };
     dispatching = true;
@@ -508,7 +555,8 @@ function createProbeManager(server) {
     }
 
     if (isUnloaded) return { triggered: false, reason: "unloaded" };
-    const command = buildRemoteCommand(normalizedCfg);
+    const runId = Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 14);
+    const command = buildRemoteCommand(normalizedCfg, runId);
     log("info", "Dispatching native admin:exec probe command", {
       regions: normalizedCfg.regionArg,
       targetNodesCount: resolved.uuids.length,
@@ -530,6 +578,7 @@ function createProbeManager(server) {
 
       snap.activeTask = {
         taskId: taskId,
+        runId: runId,
         startedAt: nowIso,
         deadlineAt: new Date(Date.now() + MAX_TASK_TIMEOUT_MS).toISOString(),
         clientMeta: resolved.clientMeta,
@@ -595,7 +644,7 @@ function createProbeManager(server) {
       const task = snap.activeTask;
       const isExpired = Date.now() >= Date.parse(task.deadlineAt || 0);
 
-      if (isExpired) {
+      if (isExpired && !task.runId) {
         log("warn", "Aborting expired persisted task on reload", { taskId: task.taskId });
         finishTask(task, "Task deadline expired during reload");
       } else {
@@ -642,12 +691,16 @@ function createProbeManager(server) {
   function getPublicSnapshot(isAdmin) {
     const snap = loadSnapshotFromDisk();
     const filteredNodes = {};
-    const nodeKeys = Object.keys(snap.nodes || {});
+    const nodeKeys = Object.keys(Object.assign({}, snap.nodes || {}, clientMetadata || {}));
     for (let i = 0; i < nodeKeys.length; i++) {
       const uuid = nodeKeys[i];
-      const nodeData = snap.nodes[uuid];
+      const currentMeta = clientMetadata && clientMetadata[uuid];
+      const nodeData = snap.nodes[uuid] || (currentMeta && {
+        uuid: uuid, name: currentMeta.name, group: currentMeta.group, nodeRegion: currentMeta.region,
+        hidden: currentMeta.hidden, services: [], meta: {}, updatedAt: null, error: null
+      });
       if (!nodeData) continue;
-      if (nodeData.hidden && !isAdmin) continue;
+      if (!isAdmin && (!clientMetadata || !clientMetadata[uuid] || clientMetadata[uuid].hidden)) continue;
       filteredNodes[uuid] = isAdmin ? nodeData : Object.assign({}, nodeData, {
         rawOutputSnippet: undefined,
         meta: Object.assign({}, nodeData.meta, { ipv4: undefined, ipv6: undefined }),
@@ -657,7 +710,7 @@ function createProbeManager(server) {
     function publicTask(task) {
       if (!task || isAdmin) return taskForDisplay(task);
       const visible = (task.clients || []).filter(function (uuid) {
-        const meta = (task.clientMeta || {})[uuid] || snap.nodes[uuid];
+        const meta = clientMetadata && clientMetadata[uuid];
         return meta && !meta.hidden;
       });
       const done = visible.filter(function (uuid) { return task.nodeSummary && task.nodeSummary[uuid] && task.nodeSummary[uuid].finished; });
@@ -722,11 +775,13 @@ function createProbeManager(server) {
     saveSnapshotToDisk: saveSnapshotToDisk,
     normalizeConfig: normalizeConfig,
     buildRemoteCommand: buildRemoteCommand,
+  buildRecoveryCommand: buildRecoveryCommand,
     checkNodeWebSsh: checkNodeWebSsh,
     triggerProbe: triggerProbe,
     syncConfigAndMaybeProbe: syncConfigAndMaybeProbe,
     getPublicSnapshot: getPublicSnapshot,
     getDebugInfo: getDebugInfo,
+    refreshClientMetadata: refreshClientMetadata,
     shutdown: shutdown
   };
 }
@@ -734,5 +789,6 @@ function createProbeManager(server) {
 module.exports = {
   normalizeConfig: normalizeConfig,
   buildRemoteCommand: buildRemoteCommand,
+  buildRecoveryCommand: buildRecoveryCommand,
   createProbeManager: createProbeManager
 };

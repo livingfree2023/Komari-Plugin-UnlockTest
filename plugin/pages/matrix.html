@@ -568,9 +568,9 @@
         </div>
       </div>
       <div class="matrix-stats">
-        <div class="stat-pill">节点数: <strong id="statNodeCount">16</strong></div>
-        <div class="stat-pill">检测服务: <strong id="statServiceCount">29</strong></div>
-        <div class="stat-pill">综合解锁率: <strong id="statUnlockRate">82.4%</strong></div>
+        <div class="stat-pill">节点数: <strong id="statNodeCount">0</strong></div>
+        <div class="stat-pill">检测服务: <strong id="statServiceCount">0</strong></div>
+        <div class="stat-pill">综合解锁率: <strong id="statUnlockRate">0.0%</strong></div>
       </div>
     </div>
 
@@ -578,12 +578,6 @@
     <div class="matrix-region-setting-bar" id="matrixRegionBar">
       <span class="region-setting-label">⚙️ 当前生效检测区域 (Regions):</span>
       <div id="regionPillsContainer" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span class="region-toggle-pill enabled" data-region-id="0" title="Region 0: 跨国流媒体平台">跨国平台 (0)</span>
-        <span class="region-toggle-pill enabled" data-region-id="11" title="Region 11: AI 对话与大模型平台">AI 平台 (11)</span>
-        <span class="region-toggle-pill" data-region-id="1" title="Region 1: 台湾平台">台湾 (1)</span>
-        <span class="region-toggle-pill" data-region-id="2" title="Region 2: 香港平台">香港 (2)</span>
-        <span class="region-toggle-pill" data-region-id="3" title="Region 3: 日本平台">日本 (3)</span>
-        <span class="region-toggle-pill" data-region-id="5" title="Region 5: 北美平台">北美 (5)</span>
       </div>
     </div>
 
@@ -602,7 +596,7 @@
         <button id="probeVisibleBtn" class="probe-btn" title="触发对当前表格中显示的节点进行并发解锁探测">
           <span class="probe-btn-icon" id="probeBtnIcon">⚡</span>
           <span id="probeBtnText">探测当前显示节点</span>
-          <span class="probe-btn-count" id="probeBtnCount">16</span>
+          <span class="probe-btn-count" id="probeBtnCount">0</span>
         </button>
       </div>
     </div>
@@ -624,1216 +618,185 @@
   </main>
 
   <script>
-    // 定义已知全量服务字典与其归属的 Region ID 与分类
-    // 当用户未在设置中开启某 region 时，该 region 的服务将根本不会作为列生成
-    let ALL_SERVICES_CATALOG = [
-      // 跨国流媒体 (Region 0: Globe)
-      { id: "netflix", name: "Netflix", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "disney", name: "Disney+", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "youtube_prem", name: "YouTube Prem", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "amazon", name: "Prime Video", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "apple", name: "Apple TV", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "spotify", name: "Spotify", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "tiktok", name: "TikTok", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "steam", name: "Steam", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "bilibili", name: "Bilibili", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "dazn", name: "DAZN", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "iqiyi", name: "iQIYI", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "wetv", name: "WeTV", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "tvb", name: "TVB Anywhere", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "viu", name: "Viu.com", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "reddit", name: "Reddit", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "twitter", name: "X (Twitter)", regionId: "0", cat: "globe", catName: "跨国平台" },
-      { id: "gplay", name: "Google Play", regionId: "0", cat: "globe", catName: "跨国平台" },
-
-      // AI 矩阵平台 (Region 11: AI)
-      { id: "chatgpt", name: "ChatGPT", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "claude", name: "Claude", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "gemini", name: "Gemini", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "copilot", name: "Copilot", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "perplexity", name: "Perplexity", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "grok", name: "xAI Grok", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "deepseek", name: "DeepSeek", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "poe", name: "Poe", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "mistral", name: "Mistral", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "coze", name: "Coze", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "kimi", name: "Moonshot Kimi", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-      { id: "dola", name: "Dola AI", regionId: "11", cat: "ai", catName: "AI 矩阵" },
-
-      // 台湾专区 (Region 1: Taiwan)
-      { id: "bahamut", name: "动画疯", regionId: "1", cat: "taiwan", catName: "台湾专区" },
-      { id: "kktv", name: "KKTV", regionId: "1", cat: "taiwan", catName: "台湾专区" },
-
-      // 香港专区 (Region 2: Hong Kong)
-      { id: "mytv", name: "myTV SUPER", regionId: "2", cat: "hongkong", catName: "香港专区" },
-      { id: "nowe", name: "Now E", regionId: "2", cat: "hongkong", catName: "香港专区" },
-
-      // 日本专区 (Region 3: Japan)
-      { id: "abema", name: "Abema", regionId: "3", cat: "japan", catName: "日本专区" },
-      { id: "tver", name: "TVer", regionId: "3", cat: "japan", catName: "日本专区" },
-      { id: "unext", name: "U-NEXT", regionId: "3", cat: "japan", catName: "日本专区" },
-
-      // 北美专区 (Region 5: North America)
-      { id: "hulu", name: "Hulu", regionId: "5", cat: "na", catName: "北美专区" },
-      { id: "max", name: "Max (HBO)", regionId: "5", cat: "na", catName: "北美专区" }
-    ];
-
-    // 当前在插件配置中启用的 Region 集合（默认仅勾选了 0 跨国平台 与 11 AI平台）
-    let activeRegions = new Set(["0", "11"]);
-
-    // 用户 16 台 VPS 节点的真实探测数据模拟镜像
-    const NODES = [
-      {
-        uuid: "8b6e4305-bbd8-4d2a-8086-91fe62409bc4",
-        name: "SG.OCI",
-        region: "🇸🇬",
-        group: "OCI; SG; NAT",
-        results: {
-          netflix: { v4: "SG", v6: "SG" },
-          disney: { v4: false, v6: "SG" },
-          youtube_prem: { v4: false, v6: "SG" },
-          amazon: { v4: "SG", v6: null },
-          apple: { v4: "SG", v6: "SG" },
-          spotify: { v4: false, v6: false },
-          tiktok: { v4: "SG", v6: null },
-          steam: { v4: "SG", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: "SG", v6: null },
-          iqiyi: { v4: "SG", v6: null },
-          wetv: { v4: "ID", v6: "ID" },
-          tvb: { v4: "SG", v6: null },
-          viu: { v4: "SG", v6: null },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "SG", v6: false },
-          gplay: { v4: false, v6: "SG" },
-          chatgpt: { v4: "SG", v6: "SG" },
-          claude: { v4: "SG", v6: "SG" },
-          gemini: { v4: false, v6: "SG" },
-          copilot: { v4: "SG", v6: "SG" },
-          perplexity: { v4: "SG", v6: "SG" },
-          grok: { v4: false, v6: false },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "SG", v6: false },
-          mistral: { v4: "SG", v6: "SG" },
-          coze: { v4: "SG", v6: false },
-          kimi: { v4: "OVERSEA", v6: "OVERSEA" },
-          dola: { v4: "SG", v6: false },
-          bahamut: { v4: false, v6: false },
-          abema: { v4: false, v6: false },
-          tver: { v4: false, v6: false },
-          unext: { v4: false, v6: false }
-        }
-      },
-      {
-        uuid: "c3002e01-e891-4b36-a17c-1bd2bcf9190d",
-        name: "SG.DW | 22nd",
-        region: "🇸🇬",
-        group: "SG",
-        results: {
-          netflix: { v4: "SG", v6: "SG" },
-          disney: { v4: "SG", v6: "SG" },
-          youtube_prem: { v4: "SG", v6: "SG" },
-          amazon: { v4: "SG", v6: null },
-          apple: { v4: "SG", v6: "SG" },
-          spotify: { v4: "SG", v6: "SG" },
-          tiktok: { v4: "SG", v6: null },
-          steam: { v4: "SG", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: "SG", v6: null },
-          iqiyi: { v4: "SG", v6: null },
-          wetv: { v4: "SG", v6: null },
-          tvb: { v4: "SG", v6: null },
-          viu: { v4: "SG", v6: null },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "SG", v6: null },
-          gplay: { v4: "SG", v6: "SG" },
-          chatgpt: { v4: "SG", v6: "SG" },
-          claude: { v4: "SG", v6: "SG" },
-          gemini: { v4: "SG", v6: "SG" },
-          copilot: { v4: "SG", v6: "SG" },
-          perplexity: { v4: "SG", v6: "SG" },
-          grok: { v4: "SG", v6: null },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "SG", v6: null },
-          mistral: { v4: "SG", v6: null },
-          coze: { v4: "SG", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "SG", v6: null },
-          bahamut: { v4: false, v6: false },
-          abema: { v4: false, v6: false },
-          tver: { v4: false, v6: false },
-          unext: { v4: false, v6: false }
-        }
-      },
-      {
-        uuid: "5ebe7233-605e-4021-80d8-0620c5c00148",
-        name: "JP.GC | 8th",
-        region: "🇯🇵",
-        group: "JP",
-        results: {
-          netflix: { v4: "JP", v6: "JP" },
-          disney: { v4: "JP", v6: "JP" },
-          youtube_prem: { v4: "JP", v6: "JP" },
-          amazon: { v4: "JP", v6: null },
-          apple: { v4: "JP", v6: "JP" },
-          spotify: { v4: "JP", v6: null },
-          tiktok: { v4: "JP", v6: null },
-          steam: { v4: "JP", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: "JP", v6: null },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "JP", v6: null },
-          gplay: { v4: "JP", v6: "JP" },
-          chatgpt: { v4: "JP", v6: "JP" },
-          claude: { v4: "JP", v6: "JP" },
-          gemini: { v4: "JP", v6: "JP" },
-          copilot: { v4: "JP", v6: "JP" },
-          perplexity: { v4: "JP", v6: "JP" },
-          grok: { v4: "JP", v6: null },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "JP", v6: null },
-          mistral: { v4: "JP", v6: null },
-          coze: { v4: "JP", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "JP", v6: null },
-          bahamut: { v4: false, v6: false },
-          abema: { v4: "YES", v6: "YES" },
-          tver: { v4: "YES", v6: "YES" },
-          unext: { v4: "YES", v6: "YES" }
-        }
-      },
-      {
-        uuid: "323920eb-7c4e-465c-a308-f01554ea7d2b",
-        name: "NYC.MassGrid",
-        region: "🇺🇸",
-        group: "US",
-        results: {
-          netflix: { v4: "US", v6: "US" },
-          disney: { v4: "US", v6: "US" },
-          youtube_prem: { v4: "US", v6: "US" },
-          amazon: { v4: "US", v6: "US" },
-          apple: { v4: "US", v6: "US" },
-          spotify: { v4: "US", v6: "US" },
-          tiktok: { v4: "US", v6: null },
-          steam: { v4: "US", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: "US", v6: null },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "US", v6: null },
-          gplay: { v4: "US", v6: "US" },
-          chatgpt: { v4: "US", v6: "US" },
-          claude: { v4: "US", v6: "US" },
-          gemini: { v4: "US", v6: "US" },
-          copilot: { v4: "US", v6: "US" },
-          perplexity: { v4: "US", v6: "US" },
-          grok: { v4: "US", v6: "US" },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "US", v6: "US" },
-          mistral: { v4: "US", v6: "US" },
-          coze: { v4: "US", v6: "US" },
-          kimi: { v4: "OVERSEA", v6: "OVERSEA" },
-          dola: { v4: "US", v6: "US" },
-          bahamut: { v4: false, v6: false },
-          abema: { v4: false, v6: false },
-          tver: { v4: false, v6: false },
-          unext: { v4: false, v6: false },
-          hulu: { v4: "US", v6: "US" },
-          max: { v4: "US", v6: "US" }
-        }
-      },
-      {
-        uuid: "172ed735-6c6e-44dc-8e1b-794776e1cab1",
-        name: "JP.OCI.ARM",
-        region: "🇯🇵",
-        group: "JP; OCI",
-        results: {
-          netflix: { v4: "JP", v6: "JP" },
-          disney: { v4: false, v6: "JP" },
-          youtube_prem: { v4: false, v6: "JP" },
-          amazon: { v4: "JP", v6: null },
-          apple: { v4: "JP", v6: "JP" },
-          spotify: { v4: false, v6: false },
-          tiktok: { v4: "JP", v6: null },
-          steam: { v4: "JP", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: false, v6: false },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "JP", v6: null },
-          gplay: { v4: false, v6: "JP" },
-          chatgpt: { v4: "JP", v6: "JP" },
-          claude: { v4: "JP", v6: "JP" },
-          gemini: { v4: false, v6: "JP" },
-          copilot: { v4: "JP", v6: "JP" },
-          perplexity: { v4: "JP", v6: "JP" },
-          grok: { v4: false, v6: false },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "JP", v6: null },
-          mistral: { v4: "JP", v6: null },
-          coze: { v4: "JP", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "JP", v6: null },
-          bahamut: { v4: false, v6: false },
-          abema: { v4: false, v6: "YES" },
-          tver: { v4: false, v6: false },
-          unext: { v4: false, v6: false }
-        }
-      },
-      {
-        uuid: "5d51b5ef-811e-4cdd-b3f5-a7f4f5459a42",
-        name: "LAX.ARM.OCI",
-        region: "🇺🇸",
-        group: "US; OCI",
-        results: {
-          netflix: { v4: "US", v6: "US" },
-          disney: { v4: false, v6: "US" },
-          youtube_prem: { v4: false, v6: "US" },
-          amazon: { v4: "US", v6: null },
-          apple: { v4: "US", v6: "US" },
-          spotify: { v4: false, v6: false },
-          tiktok: { v4: "US", v6: null },
-          steam: { v4: "US", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: false, v6: false },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "US", v6: null },
-          gplay: { v4: false, v6: "US" },
-          chatgpt: { v4: "US", v6: "US" },
-          claude: { v4: "US", v6: "US" },
-          gemini: { v4: false, v6: "US" },
-          copilot: { v4: "US", v6: "US" },
-          perplexity: { v4: "US", v6: "US" },
-          grok: { v4: false, v6: false },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "US", v6: null },
-          mistral: { v4: "US", v6: null },
-          coze: { v4: "US", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "US", v6: null }
-        }
-      },
-      {
-        uuid: "0eb589c5-6d2f-41bb-a54b-99f2c803941f",
-        name: "LAX.HDZ",
-        region: "🇺🇸",
-        group: "US",
-        results: {
-          netflix: { v4: "US", v6: "US" },
-          disney: { v4: "US", v6: "US" },
-          youtube_prem: { v4: "US", v6: "US" },
-          amazon: { v4: "US", v6: "US" },
-          apple: { v4: "US", v6: "US" },
-          spotify: { v4: "US", v6: "US" },
-          tiktok: { v4: "US", v6: null },
-          steam: { v4: "US", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: "US", v6: null },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "US", v6: null },
-          gplay: { v4: "US", v6: "US" },
-          chatgpt: { v4: "US", v6: "US" },
-          claude: { v4: "US", v6: "US" },
-          gemini: { v4: "US", v6: "US" },
-          copilot: { v4: "US", v6: "US" },
-          perplexity: { v4: "US", v6: "US" },
-          grok: { v4: "US", v6: "US" },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "US", v6: null },
-          mistral: { v4: "US", v6: null },
-          coze: { v4: "US", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "US", v6: null },
-          hulu: { v4: "US", v6: "US" }
-        }
-      },
-      {
-        uuid: "034c1e5a-72ab-40bc-93c1-b47f53613b92",
-        name: "HK.ZT | 11th",
-        region: "🇭🇰",
-        group: "HK",
-        results: {
-          netflix: { v4: "HK", v6: "HK" },
-          disney: { v4: "HK", v6: "HK" },
-          youtube_prem: { v4: "HK", v6: "HK" },
-          amazon: { v4: "HK", v6: null },
-          apple: { v4: "HK", v6: "HK" },
-          spotify: { v4: "HK", v6: null },
-          tiktok: { v4: false, v6: false },
-          steam: { v4: "HK", v6: null },
-          bilibili: { v4: "HK", v6: "HK" },
-          dazn: { v4: false, v6: false },
-          iqiyi: { v4: "HK", v6: null },
-          wetv: { v4: "HK", v6: null },
-          tvb: { v4: "HK", v6: null },
-          viu: { v4: "HK", v6: null },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "HK", v6: null },
-          gplay: { v4: "HK", v6: "HK" },
-          chatgpt: { v4: false, v6: false },
-          claude: { v4: false, v6: false },
-          gemini: { v4: false, v6: false },
-          copilot: { v4: "HK", v6: "HK" },
-          perplexity: { v4: "HK", v6: null },
-          grok: { v4: false, v6: false },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "HK", v6: null },
-          mistral: { v4: "HK", v6: null },
-          coze: { v4: "HK", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "HK", v6: null },
-          bahamut: { v4: "YES", v6: null },
-          mytv: { v4: "HK", v6: "HK" },
-          nowe: { v4: "HK", v6: "HK" }
-        }
-      },
-      {
-        uuid: "22d1529a-5b0c-424b-bfef-b2775d564432",
-        name: "LAX.AMD.OCI",
-        region: "🇺🇸",
-        group: "US; OCI",
-        results: {
-          netflix: { v4: "US", v6: "US" },
-          disney: { v4: false, v6: "US" },
-          youtube_prem: { v4: false, v6: "US" },
-          amazon: { v4: "US", v6: null },
-          apple: { v4: "US", v6: "US" },
-          spotify: { v4: false, v6: false },
-          tiktok: { v4: "US", v6: null },
-          steam: { v4: "US", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: false, v6: false },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "US", v6: null },
-          gplay: { v4: false, v6: "US" },
-          chatgpt: { v4: "US", v6: "US" },
-          claude: { v4: "US", v6: "US" },
-          gemini: { v4: false, v6: "US" },
-          copilot: { v4: "US", v6: "US" },
-          perplexity: { v4: "US", v6: "US" },
-          grok: { v4: false, v6: false },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "US", v6: null },
-          mistral: { v4: "US", v6: null },
-          coze: { v4: "US", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "US", v6: null }
-        }
-      },
-      {
-        uuid: "64a3e1bb-e989-4f64-a8aa-fac9f4d85218",
-        name: "US.VMISS",
-        region: "🇺🇸",
-        group: "US; NAT",
-        results: {
-          netflix: { v4: "US", v6: "US" },
-          disney: { v4: "US", v6: "US" },
-          youtube_prem: { v4: "US", v6: "US" },
-          amazon: { v4: "US", v6: null },
-          apple: { v4: "US", v6: "US" },
-          spotify: { v4: "US", v6: null },
-          tiktok: { v4: "US", v6: null },
-          steam: { v4: "US", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: false, v6: false },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "US", v6: null },
-          gplay: { v4: "US", v6: "US" },
-          chatgpt: { v4: "US", v6: "US" },
-          claude: { v4: "US", v6: "US" },
-          gemini: { v4: "US", v6: "US" },
-          copilot: { v4: "US", v6: "US" },
-          perplexity: { v4: "US", v6: "US" },
-          grok: { v4: "US", v6: null },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "US", v6: null },
-          mistral: { v4: "US", v6: null },
-          coze: { v4: "US", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "US", v6: null }
-        }
-      },
-      {
-        uuid: "7b3ab999-af85-4682-9a87-e0d3289f62fb",
-        name: "HK.WAWO.1",
-        region: "🇭🇰",
-        group: "HK; NAT",
-        results: {
-          netflix: { v4: "HK", v6: "HK" },
-          disney: { v4: "HK", v6: "HK" },
-          youtube_prem: { v4: "HK", v6: "HK" },
-          amazon: { v4: "HK", v6: null },
-          apple: { v4: "HK", v6: "HK" },
-          spotify: { v4: "HK", v6: null },
-          tiktok: { v4: false, v6: false },
-          steam: { v4: "HK", v6: null },
-          bilibili: { v4: "HK", v6: "HK" },
-          dazn: { v4: false, v6: false },
-          iqiyi: { v4: "HK", v6: null },
-          wetv: { v4: "HK", v6: null },
-          tvb: { v4: "HK", v6: null },
-          viu: { v4: "HK", v6: null },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "HK", v6: null },
-          gplay: { v4: "HK", v6: "HK" },
-          chatgpt: { v4: false, v6: false },
-          claude: { v4: false, v6: false },
-          gemini: { v4: false, v6: false },
-          copilot: { v4: "HK", v6: "HK" },
-          perplexity: { v4: "HK", v6: null },
-          grok: { v4: false, v6: false },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "HK", v6: null },
-          mistral: { v4: "HK", v6: null },
-          coze: { v4: "HK", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "HK", v6: null },
-          bahamut: { v4: "YES", v6: null },
-          mytv: { v4: "HK", v6: "HK" }
-        }
-      },
-      {
-        uuid: "ea17e017-fe23-4177-8c8a-52f06793638d",
-        name: "HK.WAWO.2",
-        region: "🇭🇰",
-        group: "HK; NAT",
-        results: {
-          netflix: { v4: "HK", v6: "HK" },
-          disney: { v4: "HK", v6: "HK" },
-          youtube_prem: { v4: "HK", v6: "HK" },
-          amazon: { v4: "HK", v6: null },
-          apple: { v4: "HK", v6: "HK" },
-          spotify: { v4: "HK", v6: null },
-          tiktok: { v4: false, v6: false },
-          steam: { v4: "HK", v6: null },
-          bilibili: { v4: "HK", v6: "HK" },
-          dazn: { v4: false, v6: false },
-          iqiyi: { v4: "HK", v6: null },
-          wetv: { v4: "HK", v6: null },
-          tvb: { v4: "HK", v6: null },
-          viu: { v4: "HK", v6: null },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "HK", v6: null },
-          gplay: { v4: "HK", v6: "HK" },
-          chatgpt: { v4: false, v6: false },
-          claude: { v4: false, v6: false },
-          gemini: { v4: false, v6: false },
-          copilot: { v4: "HK", v6: "HK" },
-          perplexity: { v4: "HK", v6: null },
-          grok: { v4: false, v6: false },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "HK", v6: null },
-          mistral: { v4: "HK", v6: null },
-          coze: { v4: "HK", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "HK", v6: null }
-        }
-      },
-      {
-        uuid: "c1d82e0f-fa71-4476-be11-44d53d74764b",
-        name: "JP.Bitsflow | 19th",
-        region: "🇯🇵",
-        group: "JP",
-        results: {
-          netflix: { v4: "JP", v6: "JP" },
-          disney: { v4: "JP", v6: "JP" },
-          youtube_prem: { v4: "JP", v6: "JP" },
-          amazon: { v4: "JP", v6: null },
-          apple: { v4: "JP", v6: "JP" },
-          spotify: { v4: "JP", v6: null },
-          tiktok: { v4: "JP", v6: null },
-          steam: { v4: "JP", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: "JP", v6: null },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "JP", v6: null },
-          gplay: { v4: "JP", v6: "JP" },
-          chatgpt: { v4: "JP", v6: "JP" },
-          claude: { v4: "JP", v6: "JP" },
-          gemini: { v4: "JP", v6: "JP" },
-          copilot: { v4: "JP", v6: "JP" },
-          perplexity: { v4: "JP", v6: "JP" },
-          grok: { v4: "JP", v6: null },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "JP", v6: null },
-          mistral: { v4: "JP", v6: null },
-          coze: { v4: "JP", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "JP", v6: null },
-          abema: { v4: "YES", v6: "YES" },
-          tver: { v4: "YES", v6: "YES" }
-        }
-      },
-      {
-        uuid: "0bf2afb5-9e0e-4700-ad77-0bb94c8f5d5c",
-        name: "HK.WAWO27",
-        region: "🇭🇰",
-        group: "HK",
-        results: {
-          netflix: { v4: "HK", v6: "HK" },
-          disney: { v4: "HK", v6: "HK" },
-          youtube_prem: { v4: "HK", v6: "HK" },
-          amazon: { v4: "HK", v6: null },
-          apple: { v4: "HK", v6: "HK" },
-          spotify: { v4: "HK", v6: null },
-          tiktok: { v4: false, v6: false },
-          steam: { v4: "HK", v6: null },
-          bilibili: { v4: "HK", v6: "HK" },
-          dazn: { v4: false, v6: false },
-          iqiyi: { v4: "HK", v6: null },
-          wetv: { v4: "HK", v6: null },
-          tvb: { v4: "HK", v6: null },
-          viu: { v4: "HK", v6: null },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "HK", v6: null },
-          gplay: { v4: "HK", v6: "HK" },
-          chatgpt: { v4: false, v6: false },
-          claude: { v4: false, v6: false },
-          gemini: { v4: false, v6: false },
-          copilot: { v4: "HK", v6: "HK" },
-          perplexity: { v4: "HK", v6: null },
-          grok: { v4: false, v6: false },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "HK", v6: null },
-          mistral: { v4: "HK", v6: null },
-          coze: { v4: "HK", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "HK", v6: null },
-          mytv: { v4: "HK", v6: "HK" }
-        }
-      },
-      {
-        uuid: "ae4ffe28-7b83-417a-8790-32787470074f",
-        name: "LAX.DMIT | 22nd",
-        region: "🇺🇸",
-        group: "US",
-        results: {
-          netflix: { v4: "US", v6: "US" },
-          disney: { v4: "US", v6: "US" },
-          youtube_prem: { v4: "US", v6: "US" },
-          amazon: { v4: "US", v6: "US" },
-          apple: { v4: "US", v6: "US" },
-          spotify: { v4: "US", v6: "US" },
-          tiktok: { v4: "US", v6: null },
-          steam: { v4: "US", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: "US", v6: null },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "US", v6: null },
-          gplay: { v4: "US", v6: "US" },
-          chatgpt: { v4: "US", v6: "US" },
-          claude: { v4: "US", v6: "US" },
-          gemini: { v4: "US", v6: "US" },
-          copilot: { v4: "US", v6: "US" },
-          perplexity: { v4: "US", v6: "US" },
-          grok: { v4: "US", v6: "US" },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "US", v6: null },
-          mistral: { v4: "US", v6: null },
-          coze: { v4: "US", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "US", v6: null }
-        }
-      },
-      {
-        uuid: "6465e133-a3a8-4d83-a109-91c3cdd9c542",
-        name: "JP.ZT.Plus | 19th",
-        region: "🇯🇵",
-        group: "JP",
-        results: {
-          netflix: { v4: "JP", v6: "JP" },
-          disney: { v4: "JP", v6: "JP" },
-          youtube_prem: { v4: "JP", v6: "JP" },
-          amazon: { v4: "JP", v6: null },
-          apple: { v4: "JP", v6: "JP" },
-          spotify: { v4: "JP", v6: null },
-          tiktok: { v4: "JP", v6: null },
-          steam: { v4: "JP", v6: null },
-          bilibili: { v4: false, v6: false },
-          dazn: { v4: "JP", v6: null },
-          iqiyi: { v4: false, v6: false },
-          wetv: { v4: false, v6: false },
-          tvb: { v4: false, v6: false },
-          viu: { v4: false, v6: false },
-          reddit: { v4: "YES", v6: null },
-          twitter: { v4: "JP", v6: null },
-          gplay: { v4: "JP", v6: "JP" },
-          chatgpt: { v4: "JP", v6: "JP" },
-          claude: { v4: "JP", v6: "JP" },
-          gemini: { v4: "JP", v6: "JP" },
-          copilot: { v4: "JP", v6: "JP" },
-          perplexity: { v4: "JP", v6: "JP" },
-          grok: { v4: "JP", v6: null },
-          deepseek: { v4: false, v6: false },
-          poe: { v4: "JP", v6: null },
-          mistral: { v4: "JP", v6: null },
-          coze: { v4: "JP", v6: null },
-          kimi: { v4: "OVERSEA", v6: null },
-          dola: { v4: "JP", v6: null },
-          abema: { v4: "YES", v6: "YES" }
-        }
-      }
-    ];
-
-    // 全局交互状态
+    "use strict";
+    let ALL_SERVICES_CATALOG = [];
+    const NODES = [];
+    let activeRegions = new Set();
     let currentCategory = "all";
     let searchQuery = "";
     let isProbing = false;
+    let activeTask = null;
+    let submittedTaskId = null;
+    let submitting = false;
+    let snapshotError = "";
+    let loading = true;
 
-    
+    function element(tag, className, text) {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      if (text !== undefined) el.textContent = String(text);
+      return el;
+    }
     function getRegionDisplayName(key, id) {
-      const map = {
-        "0": "跨国平台",
-        "globe": "跨国平台",
-        "1": "台湾专区",
-        "taiwan": "台湾专区",
-        "2": "香港专区",
-        "hongkong": "香港专区",
-        "3": "日本专区",
-        "japan": "日本专区",
-        "4": "韩国专区",
-        "korea": "韩国专区",
-        "5": "北美专区",
-        "northamerica": "北美专区",
-        "6": "南美专区",
-        "southamerica": "南美专区",
-        "7": "欧洲专区",
-        "europe": "欧洲专区",
-        "8": "非洲专区",
-        "africa": "非洲专区",
-        "9": "东南亚专区",
-        "southeastasia": "东南亚专区",
-        "10": "大洋洲专区",
-        "oceania": "大洋洲专区",
-        "11": "AI 矩阵",
-        "ai": "AI 矩阵"
-      };
-      const k = String(key || id || "").toLowerCase();
-      return map[k] || map[String(id)] || key || "其它专区";
+      const names = ["跨国平台", "台湾专区", "香港专区", "日本专区", "韩国专区", "北美专区",
+        "南美专区", "欧洲专区", "非洲专区", "东南亚专区", "大洋洲专区", "AI 矩阵"];
+      return names[Number(id)] || key || "其它专区";
     }
-
-    function renderRegionBar(catalog) {
-      const container = document.getElementById("regionPillsContainer");
-      if (!container) return;
-
-      // 提取在当前节点数据或后台配置中存在的区域集合
-      const detectedRegionIds = new Set();
-      activeRegions.forEach(r => detectedRegionIds.add(String(r)));
-      ALL_SERVICES_CATALOG.forEach(s => {
-        if (s.regionId) detectedRegionIds.add(String(s.regionId));
-      });
-
-      if (detectedRegionIds.size === 0) return;
-
-      let pillsHtml = "";
-      detectedRegionIds.forEach(rid => {
-        const isEnabled = activeRegions.has(rid);
-        const nameZh = getRegionDisplayName(null, rid);
-        pillsHtml += `<span class="region-toggle-pill ${isEnabled ? 'enabled' : ''}" data-region-id="${rid}" title="点击过滤此区域的列展示">${nameZh} (${rid})</span>`;
-      });
-
-      container.innerHTML = pillsHtml;
-
-      container.querySelectorAll(".region-toggle-pill[data-region-id]").forEach(pill => {
-        pill.addEventListener("click", () => {
-          const rid = pill.getAttribute("data-region-id");
-          if (activeRegions.has(rid)) {
-            if (activeRegions.size === 1) {
-              showToast("⚠️ 请至少保留一个选中的区域");
-              return;
-            }
-            activeRegions.delete(rid);
-            pill.classList.remove("enabled");
-          } else {
-            activeRegions.add(rid);
-            pill.classList.add("enabled");
-          }
-          renderMatrix();
-        });
-      });
-    }
-
-    // 核心函数：根据用户设置中开启的 Region，动态获取应生成在表格中的服务列
     function getAvailableServices() {
-      return ALL_SERVICES_CATALOG.filter(svc => activeRegions.has(svc.regionId));
+      return ALL_SERVICES_CATALOG.filter(s => activeRegions.has(s.regionId));
     }
-
-    // 动态构建分类 Pills（根据开启的 Region 自动提取存在的分类与数量）
-    function renderCategoryPills() {
-      const container = document.getElementById("categoryPillsContainer");
-      const availableServices = getAvailableServices();
-
-      // 提取所有唯一分类
-      const catsMap = new Map();
-      availableServices.forEach(s => {
-        if (!catsMap.has(s.cat)) {
-          catsMap.set(s.cat, { id: s.cat, name: s.catName, count: 0 });
-        }
-        catsMap.get(s.cat).count++;
-      });
-
-      // 如果当前选中的分类在当前开启的 region 中已经不存在，则重置回 "all"
-      if (currentCategory !== "all" && !catsMap.has(currentCategory)) {
-        currentCategory = "all";
-      }
-
-      let pillsHtml = `<button class="cat-pill ${currentCategory === 'all' ? 'active' : ''}" data-cat="all">全部平台 (${availableServices.length})</button>`;
-      catsMap.forEach(cat => {
-        pillsHtml += `<button class="cat-pill ${currentCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}">${cat.name} (${cat.count})</button>`;
-      });
-
-      container.innerHTML = pillsHtml;
-
-      // 重新绑定点击事件
-      container.querySelectorAll(".cat-pill[data-cat]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          container.querySelectorAll(".cat-pill[data-cat]").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          currentCategory = btn.getAttribute("data-cat");
-          renderHeaders();
-          renderRows();
-        });
-      });
-    }
-
-    // 单元格状态精准判定
-    // 关键：若节点未测试此项或属于未执行的 region，显示 '-' 而非误判为 '❌'
-    function evaluateCell(cellData) {
-      if (cellData === undefined || cellData === null) {
-        return {
-          type: "untested",
-          text: "-",
-          tip: "该节点未执行此项测试或未开启此区域"
-        };
-      }
-
-      const v4 = cellData.v4;
-      const v6 = cellData.v6;
-
-      const v4Unlocked = Boolean(v4);
-      const v6Unlocked = Boolean(v6);
-
-      const tipText = "IPv4: " + (v4 || "NO") + " | IPv6: " + (v6 || "NO");
-
-      // 1. IPv4 优先解锁成功
-      if (v4Unlocked) {
-        return {
-          type: "v4-ok",
-          text: String(v4),
-          tip: tipText
-        };
-      }
-
-      // 2. 仅 IPv6 解锁成功
-      if (v6Unlocked) {
-        return {
-          type: "v6-ok",
-          text: "V6 " + String(v6),
-          tip: tipText
-        };
-      }
-
-      // 3. 确实测试过但均未解锁
-      return {
-        type: "locked",
-        text: "❌",
-        tip: tipText
-      };
-    }
-
     function getFilteredServices() {
-      const available = getAvailableServices();
-      if (currentCategory === "all") return available;
-      return available.filter(s => s.cat === currentCategory);
+      return getAvailableServices().filter(s => currentCategory === "all" || s.regionId === currentCategory);
     }
-
     function getFilteredNodes() {
       const q = searchQuery.trim().toLowerCase();
-      if (!q) return NODES;
-      return NODES.filter(n => 
-        n.name.toLowerCase().includes(q) || 
-        n.group.toLowerCase().includes(q) || 
-        n.region.includes(q)
-      );
+      return NODES.filter(n => !q || [n.name, n.group, n.region].some(v => v.toLowerCase().includes(q)));
     }
-
-    // 渲染动态表头
+    function renderRegionBar() {
+      const container = document.getElementById("regionPillsContainer");
+      container.replaceChildren();
+      activeRegions.forEach(id => {
+        container.appendChild(element("span", "region-toggle-pill enabled", getRegionDisplayName(null, id) + " (" + id + ")"));
+      });
+    }
+    function renderCategoryPills() {
+      const container = document.getElementById("categoryPillsContainer");
+      const counts = new Map();
+      getAvailableServices().forEach(s => counts.set(s.regionId, (counts.get(s.regionId) || 0) + 1));
+      if (currentCategory !== "all" && !counts.has(currentCategory)) currentCategory = "all";
+      container.replaceChildren();
+      function add(id, title) {
+        const button = element("button", "cat-pill" + (currentCategory === id ? " active" : ""), title);
+        button.addEventListener("click", () => { currentCategory = id; renderMatrix(); });
+        container.appendChild(button);
+      }
+      add("all", "全部平台 (" + getAvailableServices().length + ")");
+      counts.forEach((count, id) => add(id, getRegionDisplayName(null, id) + " (" + count + ")"));
+    }
+    function evaluateCell(service) {
+      if (!service) return {type: "untested", text: "-", tip: "未测试"};
+      const v4 = service.ipv4 || service.auto;
+      const v6 = service.ipv6;
+      const tip = [service.ipv4 ? "IPv4: " + service.ipv4.raw : "IPv4: 未测试",
+        v6 ? "IPv6: " + v6.raw : "IPv6: 未测试", service.auto ? "Auto: " + service.auto.raw : ""].filter(Boolean).join(" | ");
+      if (v4 && v4.unlocked) return {type: "v4-ok", text: v4.region || service.region || "YES", tip};
+      if (v6 && v6.unlocked) return {type: "v6-ok", text: "V6 " + (v6.region || service.region || "YES"), tip};
+      const tested = [v4, v6].some(v => v && ["NO", "RESTRICTED", "BANNED"].includes(v.status));
+      return {type: tested ? "locked" : "untested", text: tested ? "❌" : "-", tip};
+    }
     function renderHeaders() {
-      const headerRow = document.getElementById("headerRow");
-      headerRow.innerHTML = '<th class="sticky-col-header">VPS 节点 / 服务</th>';
-
-      const services = getFilteredServices();
-      services.forEach(svc => {
-        const th = document.createElement("th");
-        th.innerHTML = `
-          <div class="service-header-wrap">
-            <span class="service-header-name">${svc.name}</span>
-            <span class="service-header-cat">${svc.catName}</span>
-          </div>
-        `;
-        headerRow.appendChild(th);
+      const row = document.getElementById("headerRow");
+      row.replaceChildren(element("th", "sticky-col-header", "VPS 节点 / 服务"));
+      getFilteredServices().forEach(s => {
+        const th = element("th");
+        const wrap = element("div", "service-header-wrap");
+        wrap.append(element("span", "service-header-name", s.name), element("span", "service-header-cat", s.catName));
+        th.appendChild(wrap); row.appendChild(th);
       });
     }
-
-    // 渲染节点行
     function renderRows() {
-      const tbody = document.getElementById("matrixBody");
-      tbody.innerHTML = "";
-
-      const filteredNodes = getFilteredNodes();
-      const filteredServices = getFilteredServices();
-
-      if (filteredNodes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${filteredServices.length + 1}" style="padding:40px;color:var(--text-dim);">没有匹配到相关节点</td></tr>`;
-        updateProbeButtonState();
-        return;
+      const body = document.getElementById("matrixBody");
+      body.replaceChildren();
+      const nodes = getFilteredNodes(), services = getFilteredServices();
+      if (!nodes.length) {
+        const row = element("tr"), cell = element("td", "", snapshotError || (loading ? "正在加载快照…" : "暂无探测快照，请由管理员发起探测"));
+        cell.colSpan = services.length + 1; cell.style.padding = "40px";
+        row.appendChild(cell); body.appendChild(row);
       }
-
-      filteredNodes.forEach(node => {
-        const tr = document.createElement("tr");
-        tr.dataset.uuid = node.uuid;
-
-        // 固定首列：节点名称与分组
-        const nodeTd = document.createElement("td");
-        nodeTd.className = "sticky-col";
-        nodeTd.innerHTML = `
-          <div class="node-cell-wrap">
-            <span class="node-region-flag">${node.region}</span>
-            <div style="overflow:hidden;">
-              <div class="node-name-text" title="${node.name}">${node.name}</div>
-              <span class="node-group-badge">${node.group}</span>
-            </div>
-          </div>
-        `;
-        tr.appendChild(nodeTd);
-
-        // 各服务单元格
-        filteredServices.forEach(svc => {
-          const td = document.createElement("td");
-          const cellData = node.results ? node.results[svc.id] : undefined;
-          const result = evaluateCell(cellData);
-
-          td.innerHTML = `
-            <span class="cell-badge ${result.type} tooltip" data-tip="${result.tip}">
-              ${result.text}
-            </span>
-          `;
-          tr.appendChild(td);
+      nodes.forEach(n => {
+        const row = element("tr"); row.dataset.uuid = n.uuid;
+        if (activeTask && activeTask.clients.includes(n.uuid) && !(activeTask.nodeSummary && activeTask.nodeSummary[n.uuid] && activeTask.nodeSummary[n.uuid].finished)) row.classList.add("row-probing");
+        const nodeCell = element("td", "sticky-col"), wrap = element("div", "node-cell-wrap"), labels = element("div");
+        const name = element("div", "node-name-text", n.name); name.title = n.name;
+        labels.append(name, element("span", "node-group-badge", n.group));
+        if (n.error) { const error = element("div", "node-group-badge", "上次探测失败"); error.title = n.error; labels.appendChild(error); }
+        wrap.append(element("span", "node-region-flag", n.region), labels); nodeCell.appendChild(wrap); row.appendChild(nodeCell);
+        services.forEach(s => {
+          const cell = element("td"), result = evaluateCell(n.results[s.id]);
+          const badge = element("span", "cell-badge " + result.type + " tooltip", result.text);
+          badge.dataset.tip = result.tip; cell.appendChild(badge); row.appendChild(cell);
         });
-
-        tbody.appendChild(tr);
+        body.appendChild(row);
       });
-
-      updateStats();
-      updateProbeButtonState();
+      updateStats(); updateProbeButtonState();
     }
-
     function updateStats() {
-      const availableServices = getAvailableServices();
-      document.getElementById("statServiceCount").textContent = availableServices.length;
+      let total = 0, unlocked = 0;
+      NODES.forEach(n => getAvailableServices().forEach(s => {
+        const result = evaluateCell(n.results[s.id]);
+        if (result.type !== "untested") { total++; if (result.type !== "locked") unlocked++; }
+      }));
+      document.getElementById("statServiceCount").textContent = getAvailableServices().length;
       document.getElementById("statNodeCount").textContent = NODES.length;
-
-      // 计算当前开启服务的综合解锁率
-      let totalTests = 0;
-      let totalUnlocked = 0;
-      NODES.forEach(n => {
-        if (!n.results) return;
-        availableServices.forEach(svc => {
-          const res = n.results[svc.id];
-          if (res !== undefined && res !== null) {
-            totalTests++;
-            if (res.v4 || res.v6) totalUnlocked++;
-          }
-        });
-      });
-
-      const rate = totalTests > 0 ? ((totalUnlocked / totalTests) * 100).toFixed(1) + "%" : "0.0%";
-      document.getElementById("statUnlockRate").textContent = rate;
+      document.getElementById("statUnlockRate").textContent = (total ? (unlocked * 100 / total).toFixed(1) : "0.0") + "%";
     }
-
     function updateProbeButtonState() {
-      const btn = document.getElementById("probeVisibleBtn");
-      const countSpan = document.getElementById("probeBtnCount");
-      const textSpan = document.getElementById("probeBtnText");
-      if (!btn || !countSpan || isProbing) return;
-
-      const visibleNodes = getFilteredNodes();
-      countSpan.textContent = visibleNodes.length;
-
-      if (visibleNodes.length === 0) {
-        btn.disabled = true;
-        btn.title = "当前无匹配的节点";
-        textSpan.textContent = "无匹配节点";
-      } else {
-        btn.disabled = false;
-        btn.title = `触发对当前显示的 ${visibleNodes.length} 个节点进行并发解锁探测`;
-        textSpan.textContent = "探测当前显示节点";
-      }
+      isProbing = submitting || Boolean(activeTask);
+      document.getElementById("probeVisibleBtn").disabled = loading || Boolean(snapshotError) || isProbing || !getFilteredNodes().length;
+      document.getElementById("probeBtnIcon").textContent = isProbing ? "🔄" : "⚡";
+      document.getElementById("probeBtnIcon").classList.toggle("spinning", isProbing);
+      document.getElementById("probeBtnText").textContent = submitting ? "正在提交" : (activeTask ? "后台探测中" : "探测当前显示节点");
+      document.getElementById("probeBtnCount").textContent = activeTask ? (activeTask.finishedCount || 0) + "/" + activeTask.totalCount : getFilteredNodes().length;
     }
-
     function showToast(message) {
-      const existing = document.querySelector(".probe-toast");
-      if (existing) existing.remove();
-
-      const toast = document.createElement("div");
-      toast.className = "probe-toast";
-      toast.innerHTML = message;
-      document.body.appendChild(toast);
-
-      setTimeout(() => {
-        toast.style.transition = "opacity 0.4s, transform 0.4s";
-        toast.style.opacity = "0";
-        toast.style.transform = "translateY(10px)";
-        setTimeout(() => toast.remove(), 400);
-      }, 3500);
+      const old = document.querySelector(".probe-toast"); if (old) old.remove();
+      const toast = element("div", "probe-toast", message); document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
     }
-
-    // 探测动作触发
     async function triggerProbeForVisibleNodes() {
-      if (isProbing) return;
-      const targetNodes = getFilteredNodes();
-      if (targetNodes.length === 0) {
-        showToast("⚠️ 当前没有匹配的节点可供探测");
-        return;
-      }
-
-      isProbing = true;
-      const btn = document.getElementById("probeVisibleBtn");
-      const icon = document.getElementById("probeBtnIcon");
-      const textSpan = document.getElementById("probeBtnText");
-      const countSpan = document.getElementById("probeBtnCount");
-
-      btn.disabled = true;
-      icon.textContent = "🔄";
-      icon.classList.add("spinning");
-      textSpan.textContent = "正在并发探测";
-      countSpan.textContent = `0/${targetNodes.length}`;
-
-      // 为当前显示的节点行添加探测中动态高亮
-      const targetUuids = new Set(targetNodes.map(n => n.uuid));
-      document.querySelectorAll("#matrixBody tr").forEach(tr => {
-        if (targetUuids.has(tr.dataset.uuid)) {
-          tr.classList.add("row-probing");
-        }
-      });
-
-      // 如果运行在 Komari 真实环境，尝试发起真实后端探测请求
-      const probePayload = { client_uuids: Array.from(targetUuids), force: true };
+      if (submitting || activeTask || !getFilteredNodes().length) return;
+      submitting = true; updateProbeButtonState();
       try {
-        fetch("/api/plugin/unlock-test/probe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(probePayload)
-        }).catch(() => {});
-      } catch (e) {}
-
-      // 拟真进度反馈体验
-      let finished = 0;
-      const stepDuration = Math.max(120, Math.min(600, Math.floor(2200 / targetNodes.length)));
-
-      const progressInterval = setInterval(() => {
-        finished++;
-        countSpan.textContent = `${finished}/${targetNodes.length}`;
-
-        const finishedNode = targetNodes[finished - 1];
-        if (finishedNode) {
-          const row = document.querySelector(`#matrixBody tr[data-uuid="${finishedNode.uuid}"]`);
-          if (row) row.classList.remove("row-probing");
-        }
-
-        if (finished >= targetNodes.length) {
-          clearInterval(progressInterval);
-          completeProbing();
-        }
-      }, stepDuration);
-
-      function completeProbing() {
-        document.querySelectorAll("#matrixBody tr.row-probing").forEach(tr => {
-          tr.classList.remove("row-probing");
-        });
-
-        isProbing = false;
-        icon.textContent = "⚡";
-        icon.classList.remove("spinning");
-        updateProbeButtonState();
-
-        showToast(`✅ 探测完成：已针对当前显示的 <strong>${targetNodes.length}</strong> 个节点执行全量解锁刷新`);
-      }
+        const response = await fetch("/api/plugin/unlock-test/probe", {method: "POST", credentials: "same-origin",
+          headers: {"Content-Type": "application/json"}, body: JSON.stringify({clients: getFilteredNodes().map(n => n.uuid)})});
+        const payload = await response.json();
+        if (!response.ok || payload.status !== "success" || !payload.data) throw new Error(payload.message || "探测请求失败");
+        if (payload.data.reason === "already_running") showToast("已有探测任务运行中，请等待完成");
+        else if (payload.data.triggered) { submittedTaskId = payload.data.taskId; showToast("探测任务已提交"); }
+        else throw new Error(payload.message || "探测任务未启动");
+        await loadLiveSnapshot();
+      } catch (error) { showToast("探测失败：" + error.message); }
+      finally { submitting = false; updateProbeButtonState(); }
     }
-
-    function renderMatrix() {
-      renderCategoryPills();
-      renderHeaders();
-      renderRows();
-    }
-
-    // 事件绑定：搜索框过滤
-    document.getElementById("nodeSearchInput").addEventListener("input", (e) => {
-      searchQuery = e.target.value;
-      renderRows();
-    });
-
-    // 事件绑定：模拟设置中开启/关闭 Region
-    document.querySelectorAll(".region-toggle-pill[data-region-id]").forEach(pill => {
-      pill.addEventListener("click", () => {
-        const rid = pill.getAttribute("data-region-id");
-        if (activeRegions.has(rid)) {
-          if (activeRegions.size === 1) {
-            showToast("⚠️ 请至少保留一个开启的 Region");
-            return;
-          }
-          activeRegions.delete(rid);
-          pill.classList.remove("enabled");
-        } else {
-          activeRegions.add(rid);
-          pill.classList.add("enabled");
-        }
-        renderMatrix();
-      });
-    });
-
-    document.getElementById("probeVisibleBtn").addEventListener("click", triggerProbeForVisibleNodes);
-
-    // 初始渲染
-    renderMatrix();
-
-    // === 真实 Komari 插件环境数据同步与实时探测支持 ===
+    function renderMatrix() { renderRegionBar(); renderCategoryPills(); renderHeaders(); renderRows(); }
     async function loadLiveSnapshot() {
       try {
-        const resp = await fetch("/api/plugin/unlock-test/snapshot");
-        if (!resp.ok) return;
-        const resJson = await resp.json();
-        if (resJson && resJson.status === "success" && resJson.data) {
-          const snap = resJson.data;
-          
-          // 1. 同步配置中启用的 Regions
-          if (Array.isArray(snap.regions) && snap.regions.length > 0) {
-            activeRegions = new Set(snap.regions);
-            // 更新设置标签的高亮状态
-            document.querySelectorAll(".region-toggle-pill[data-region-id]").forEach(pill => {
-              const rid = pill.getAttribute("data-region-id");
-              if (activeRegions.has(rid)) {
-                pill.classList.add("enabled");
-              } else {
-                pill.classList.remove("enabled");
-              }
-            });
-          }
-
-          // 2. 将后端真实节点转换为大表格式
-          if (snap.nodes && Object.keys(snap.nodes).length > 0) {
-            const liveNodes = [];
-            const allServiceSet = new Map();
-
-            Object.keys(snap.nodes).forEach(uuid => {
-              const nodeData = snap.nodes[uuid];
-              if (!nodeData) return;
-              
-              const nodeEntry = {
-                uuid: uuid,
-                name: nodeData.name || (nodeData.meta && nodeData.meta.name) || uuid.slice(0, 8),
-                region: nodeData.nodeRegion || (nodeData.meta && nodeData.meta.region) || "🌐",
-                group: nodeData.group || (nodeData.meta && nodeData.meta.group) || "DEFAULT",
-                results: {}
-              };
-
-              // 收集每个服务的测试结果
-              if (Array.isArray(nodeData.services)) {
-                nodeData.services.forEach(svc => {
-                  const svcId = svc.id || svc.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-                  const v4Unlocked = svc.ipv4 ? Boolean(svc.ipv4.unlocked) : (svc.unlocked && (!svc.ipv6 || svc.ipv4));
-                  const v6Unlocked = svc.ipv6 ? Boolean(svc.ipv6.unlocked) : false;
-                  
-                  let v4Val = false;
-                  if (v4Unlocked) {
-                    v4Val = (svc.ipv4 && svc.ipv4.region) ? svc.ipv4.region : (svc.region || "YES");
-                  }
-                  let v6Val = false;
-                  if (v6Unlocked) {
-                    v6Val = (svc.ipv6 && svc.ipv6.region) ? svc.ipv6.region : (svc.region || "YES");
-                  }
-
-                  nodeEntry.results[svcId] = {
-                    v4: v4Val,
-                    v6: v6Val
-                  };
-
-                  // 自动发现新服务并加入字典
-                  if (!allServiceSet.has(svcId)) {
-                    const rKey = svc.regionKey || "globe";
-                    allServiceSet.set(svcId, {
-                      id: svcId,
-                      name: svc.displayName || svc.name,
-                      regionId: String(svc.regionId || "0"),
-                      cat: rKey.toLowerCase(),
-                      catName: getRegionDisplayName(rKey, svc.regionId)
-                    });
-                  }
-                });
-              }
-
-              liveNodes.push(nodeEntry);
-            });
-
-            if (liveNodes.length > 0) {
-              NODES.length = 0;
-              liveNodes.forEach(n => NODES.push(n));
-
-              // 关键修复：当从后端获取到真实测试数据时，服务列 100% 完全采用后端解析出的真实服务列表！
-              // 彻底抛弃 mock 预定义字典，杜绝出现两套同名服务（如一套全-、一套有结果）的列重复 Bug
-              if (allServiceSet.size > 0) {
-                ALL_SERVICES_CATALOG = Array.from(allServiceSet.values());
-              }
-
-              // 动态更新区域栏的显示与交互
-              renderRegionBar(snap.regionsCatalog || []);
-
-              renderMatrix();
-            }
-          }
+        const response = await fetch("/api/plugin/unlock-test/snapshot", {credentials: "same-origin", cache: "no-store"});
+        if (!response.ok) throw new Error("快照接口 HTTP " + response.status);
+        const payload = await response.json();
+        if (!payload || payload.status !== "success" || !payload.data) throw new Error("快照数据无效");
+        const snap = payload.data;
+        activeRegions = new Set((snap.regions || []).map(String));
+        activeTask = snap.activeTask;
+        if (activeTask && !Array.isArray(activeTask.clients)) activeTask.clients = [];
+        const catalog = new Map(); NODES.length = 0;
+        Object.keys(snap.nodes || {}).forEach(uuid => {
+          const data = snap.nodes[uuid], results = {};
+          (data.services || []).forEach(service => {
+            const regionId = String(service.regionId || "0");
+            const id = regionId + "::" + (service.id || service.name);
+            results[id] = service;
+            if (activeRegions.has(regionId)) catalog.set(id, {id, regionId, name: service.displayName || service.name, catName: getRegionDisplayName(service.regionKey, regionId)});
+          });
+          NODES.push({uuid, name: String(data.name || uuid), group: String(data.group || ""), region: String(data.nodeRegion || "🌐"), error: data.error, results});
+        });
+        ALL_SERVICES_CATALOG = Array.from(catalog.values());
+        snapshotError = "";
+        if (submittedTaskId && snap.lastTask && snap.lastTask.taskId === submittedTaskId) {
+          showToast(snap.lastTask.error ? "探测结束，部分节点失败，请查看节点提示" : "探测完成，已更新真实结果");
+          submittedTaskId = null;
         }
-      } catch (e) {
-        // 离线或本地静态环境，保留内置镜像数据
-      }
+      } catch (error) {
+        snapshotError = error.message; NODES.length = 0; ALL_SERVICES_CATALOG = []; activeTask = null;
+      } finally { loading = false; renderMatrix(); }
     }
-
-    // 页面载入时自动加载真实快照
-    loadLiveSnapshot();
-
+    document.getElementById("nodeSearchInput").addEventListener("input", event => {searchQuery = event.target.value; renderRows();});
+    document.getElementById("probeVisibleBtn").addEventListener("click", triggerProbeForVisibleNodes);
+    async function refreshLoop() {
+      await loadLiveSnapshot();
+      setTimeout(refreshLoop, activeTask || submittedTaskId ? 3000 : 15000);
+    }
+    renderMatrix(); refreshLoop();
   </script>
 </body>
 </html>

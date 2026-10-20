@@ -56,14 +56,12 @@
   const I18N = {
     "zh-CN": {
       title: "流媒体与 AI 解锁",
-      all: "ALL",
+      all: "全部",
       no_nodes: "暂无可见节点",
       no_snapshot: "正在等待后台首次探测快照...",
       probing: "后台探测运行中...",
       trigger_probe: "探测",
       unlocked_stat: "已解锁",
-      backup_export: "导出",
-      backup_import: "导入",
       about: "关于",
       debug_btn: "诊断",
       debug_title: "MediaUnlockTest 实时任务与诊断状态",
@@ -75,27 +73,7 @@
       view_raw_api: "查看 /debug API 原生数据",
       minimized_tooltip: "流媒体与 AI 解锁检测 (点击展开)"
     },
-    "en": {
-      title: "Media & AI Unlock",
-      all: "ALL",
-      no_nodes: "No visible nodes",
-      no_snapshot: "Waiting for background unlock snapshot...",
-      probing: "Probing in background...",
-      trigger_probe: "Probe",
-      unlocked_stat: "Unlocked",
-      backup_export: "Export",
-      backup_import: "Import",
-      about: "About",
-      debug_btn: "Debug",
-      debug_title: "MediaUnlockTest Live Task & Diagnostics",
-      about_title: "About Komari UnlockTest Plugin",
-      about_desc1: "Architecture: Strict Read/Write Separation. Background probes run on VPS nodes and return through the Agent or a direct callback into a saved snapshot; frontend reads pre-warmed snapshots with zero runtime blocking.",
-      about_desc2: "Engine Attribution: HsukqiLee/MediaUnlockTest",
-      about_author: "Author: livingfree2023@outlook.com",
-      close: "Close",
-      view_raw_api: "View raw /debug API JSON",
-      minimized_tooltip: "Media & AI Unlock Matrix (Click to expand)"
-    }
+
   };
 
   // 48px 方形 SVG 格式图标：融合流媒体信号、解锁挂锁与 AI 矩阵神经元
@@ -121,7 +99,6 @@
   ].join("\n");
 
   let prefs = {
-    lang: "zh-CN",
     selectedNode: "",
     minimized: false,
     pos: null
@@ -140,16 +117,13 @@
 
   function loadPrefs() {
     try {
-      const savedLang = localStorage.getItem("language");
-      if (savedLang && savedLang.toLowerCase().indexOf("en") === 0) {
-        prefs.lang = "en";
-      }
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === "object") {
           prefs = Object.assign({}, prefs, parsed);
           delete prefs.ipFilter;
+          delete prefs.lang;
         }
       }
     } catch (_) {}
@@ -157,12 +131,14 @@
 
   function savePrefs() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+      const saved = Object.assign({}, prefs);
+      delete saved.lang;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
     } catch (_) {}
   }
 
   function t(key) {
-    const dict = I18N[prefs.lang] || I18N["zh-CN"];
+    const dict = I18N["zh-CN"];
     return dict[key] || key;
   }
 
@@ -466,10 +442,9 @@
       '    <span id="km-ul-title-text">' + t("title") + "</span>",
       "  </div>",
       '  <div class="km-ul-header-actions">',
-      '    <button class="km-ul-icon-btn" id="km-ul-probe-btn" style="display:none" title="Trigger Background Probe">' + t("trigger_probe") + "</button>",
+      '    <button class="km-ul-icon-btn" id="km-ul-probe-btn" style="display:none" title="发起后台探测">' + t("trigger_probe") + "</button>",
       '    <button class="km-ul-icon-btn" id="km-ul-matrix-btn" title="查看全节点解锁矩阵大表">📊 解锁矩阵</button>',
-      '    <button class="km-ul-icon-btn" id="km-ul-lang-btn" title="Switch Language">中/EN</button>',
-      '    <button class="km-ul-icon-btn" id="km-ul-min-btn" title="Collapse to 64px Icon">—</button>',
+      '    <button class="km-ul-icon-btn" id="km-ul-min-btn" title="收起浮窗">—</button>',
       "  </div>",
       "</div>",
       '<div class="km-ul-body">',
@@ -482,9 +457,6 @@
       '  <span id="km-ul-stat-text" style="cursor:pointer" title="点击查看诊断调试信息">--</span>',
       '  <div class="km-ul-footer-links">',
       '    <button class="km-ul-link-btn" id="km-ul-debug-btn">' + t("debug_btn") + "</button>",
-      '    <button class="km-ul-link-btn" id="km-ul-export-btn">' + t("backup_export") + "</button>",
-      '    <button class="km-ul-link-btn" id="km-ul-import-btn">' + t("backup_import") + "</button>",
-      '    <input type="file" id="km-ul-import-input" accept=".json" style="display:none" />',
       '    <button class="km-ul-link-btn" id="km-ul-about-btn">' + t("about") + "</button>",
       "  </div>",
       "</div>"
@@ -621,14 +593,6 @@
       });
     }
 
-    document.getElementById("km-ul-lang-btn").addEventListener("click", function () {
-      prefs.lang = prefs.lang === "zh-CN" ? "en" : "zh-CN";
-      savePrefs();
-      refreshI18nLabels();
-      renderServiceLogos();
-      updateMinimizedIconState();
-    });
-
     // [Handover 优化]: 前端任务触发引擎，支持 force (强制抢占) 与 cancel (主动取消)
     async function triggerProbeWithClients(clients, force, cancel) {
       if (!cancel) {
@@ -657,7 +621,7 @@
       try {
         const reqPayload = {};
         if (Array.isArray(clients)) reqPayload.clients = clients;
-        if (force) reqPayload.force = true;
+
         if (cancel) reqPayload.cancel = true;
 
         const response = await fetch("/api/plugin/unlock-test/probe", {
@@ -792,15 +756,15 @@
 
     if (active) {
       lines.push('<div style="background:rgba(6,182,212,0.12);border:1px solid #06b6d4;border-radius:8px;padding:12px;margin-bottom:12px;">');
-      lines.push('  <div style="font-weight:700;color:#67e8f9;margin-bottom:4px;">🚀 后台探测任务执行中 (Task ID: ' + active.taskId + ')</div>');
+      lines.push('  <div style="font-weight:700;color:#67e8f9;margin-bottom:4px;">🚀 后台探测任务执行中 (Task ID: ' + escapeHTML(active.taskId) + ')</div>');
       lines.push('  <div>已运行时间: <strong>' + (active.elapsedSeconds || 0) + 's</strong> | 节点完成度: <strong>' + (active.finishedCount || 0) + ' / ' + (active.totalCount || 0) + '</strong></div>');
-      lines.push('  <div style="font-size:13px;color:#94a3b8;margin-top:4px;">下发指令预览: <code>' + (snap.commandPreview || "unlock-test -region 0,11") + '</code></div>');
+      lines.push('  <div style="font-size:13px;color:#94a3b8;margin-top:4px;">下发指令预览: <code>' + escapeHTML((snap.commandPreview || "unlock-test -region 0,11")) + '</code></div>');
       lines.push('</div>');
     } else {
-      lines.push('<p style="font-size:14px;color:#94a3b8;">当前无执行中任务。上次快照时间: <code>' + (snap.updatedAt || "无") + '</code></p>');
+      lines.push('<p style="font-size:14px;color:#94a3b8;">当前无执行中任务。上次快照时间: <code>' + escapeHTML((snap.updatedAt || "无")) + '</code></p>');
     }
 
-    lines.push('<h4 style="margin:14px 0 6px 0;font-size:16px;">当前选中节点诊断: ' + ((currentNode && currentNode.name) || nodeUUID || "未选择") + '</h4>');
+    lines.push('<h4 style="margin:14px 0 6px 0;font-size:16px;">当前选中节点诊断: ' + escapeHTML(((currentNode && currentNode.name) || nodeUUID || "未选择")) + '</h4>');
 
     if (!currentNode) {
       lines.push('<p style="color:#f87171">尚未获取到该节点的解锁快照数据。可能原因：</p>');
@@ -811,13 +775,13 @@
       lines.push('</ul>');
     } else {
       lines.push('<div style="font-family:var(--km-ul-mono);font-size:14px;line-height:1.7;">');
-      lines.push('  <div>UUID: <code>' + currentNode.uuid + '</code></div>');
+      lines.push('  <div>UUID: <code>' + escapeHTML(currentNode.uuid) + '</code></div>');
       lines.push('  <div>Web SSH (远程执行): <strong style="color:' + (currentNode.webSshDisabled ? "#f87171" : "#34d399") + '">' + (currentNode.webSshDisabled ? "已禁用 (--disable-web-ssh)" : "正常启用") + '</strong></div>');
-      lines.push('  <div>Exit Code: <strong style="color:' + (currentNode.exitCode === 0 ? "#34d399" : "#f87171") + '">' + currentNode.exitCode + '</strong></div>');
-      lines.push('  <div>完成时间: ' + (currentNode.finishedAt || "未知") + '</div>');
+      lines.push('  <div>Exit Code: <strong style="color:' + (currentNode.exitCode === 0 ? "#34d399" : "#f87171") + '">' + escapeHTML(currentNode.exitCode) + '</strong></div>');
+      lines.push('  <div>完成时间: ' + escapeHTML((currentNode.finishedAt || "未知")) + '</div>');
       lines.push('  <div>解析服务数: <strong>' + ((currentNode.services && currentNode.services.length) || 0) + '</strong></div>');
       if (currentNode.error) {
-        lines.push('  <div style="color:#f87171;margin-top:4px;">错误信息: <strong>' + currentNode.error + '</strong></div>');
+        lines.push('  <div style="color:#f87171;margin-top:4px;">错误信息: <strong>' + escapeHTML(currentNode.error) + '</strong></div>');
       }
       lines.push('</div>');
 
@@ -830,12 +794,12 @@
     if (isAdminUser) {
       lines.push('<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">');
       if (active) {
-        lines.push('  <button class="km-ul-ip-pill" style="border-color:#ef4444;color:#f87171;" onclick="window.kmUlCancelActiveTask();">强制终止卡死任务 (Abort Task)</button>');
+        lines.push('  <button class="km-ul-ip-pill" style="border-color:#ef4444;color:#f87171;" onclick="window.kmUlCancelActiveTask();">取消当前探测</button>');
       }
       if (nodeUUID) {
         lines.push('  <button class="km-ul-ip-pill active" onclick="window.kmUlProbeCurrentNode();">重新探测当前节点 (' + escapeHTML((currentNode && currentNode.name) || nodeUUID) + ')</button>');
       }
-      lines.push('  <button class="km-ul-ip-pill" onclick="window.kmUlProbeAllNodes();">全节点重新探测 (All Nodes)</button>');
+      lines.push('  <button class="km-ul-ip-pill" onclick="window.kmUlProbeAllNodes();">全节点重新探测</button>');
       lines.push('</div>');
     }
 
@@ -846,31 +810,9 @@
     return String(str || "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
-
-  function refreshI18nLabels() {
-    const titleEl = document.getElementById("km-ul-title-text");
-    if (titleEl) titleEl.textContent = t("title");
-    const probeBtn = document.getElementById("km-ul-probe-btn");
-    if (probeBtn) probeBtn.textContent = t("trigger_probe");
-    const debugBtn = document.getElementById("km-ul-debug-btn");
-    if (debugBtn) debugBtn.textContent = t("debug_btn");
-
-    const aboutBtn = document.getElementById("km-ul-about-btn");
-    if (aboutBtn) aboutBtn.textContent = t("about");
-    const aboutTitle = document.getElementById("km-ul-about-title");
-    if (aboutTitle) aboutTitle.textContent = t("about_title");
-    const aboutDesc1 = document.getElementById("km-ul-about-desc1");
-    if (aboutDesc1) aboutDesc1.textContent = t("about_desc1");
-    const aboutClose = document.getElementById("km-ul-about-close");
-    if (aboutClose) aboutClose.textContent = t("close");
-    const debugTitle = document.getElementById("km-ul-debug-title");
-    if (debugTitle) debugTitle.textContent = t("debug_title");
-    const debugLink = document.getElementById("km-ul-debug-link");
-    if (debugLink) debugLink.textContent = t("view_raw_api");
-    const minIcon = document.getElementById("km-ul-min-icon");
-    if (minIcon) minIcon.title = t("minimized_tooltip");
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function renderNodeSelect() {
@@ -934,7 +876,7 @@
     if (probeBtn) {
       if (isNodeProbing) {
         probeBtn.disabled = true;
-        probeBtn.textContent = prefs.lang === "en" ? "Probing..." : "探测中...";
+        probeBtn.textContent = "探测中...";
       } else {
         probeBtn.disabled = false;
         probeBtn.textContent = t("trigger_probe");
@@ -954,27 +896,27 @@
         '    <div class="km-ul-probing-wave delay2"></div>',
         '    <div class="km-ul-probing-radar-core">⚡</div>',
         '  </div>',
-        '  <div class="km-ul-probing-title">' + (prefs.lang === "en" ? "Testing Media & AI Unlocks..." : "正在实时探测流媒体与 AI 解锁...") + '</div>',
-        '  <div class="km-ul-probing-sub">' + (prefs.lang === "en" ? ("Testing on node via VPS (" + elapsed + "s)...") : ("节点正在测试各项服务并直接回传 (" + elapsed + "秒)...")) + '</div>',
+        '  <div class="km-ul-probing-title">' + "正在实时探测流媒体与 AI 解锁..." + '</div>',
+        '  <div class="km-ul-probing-sub">' + ("节点正在测试各项服务并直接回传 (" + elapsed + "秒)...") + '</div>',
         '  <div class="km-ul-probing-bar"><div class="km-ul-probing-bar-fill"></div></div>',
         '</div>'
       ].join("\n");
-      statEl.innerHTML = '<span class="km-ul-stat-dot-probing"></span> ' + (prefs.lang === "en" ? ("Probing (" + elapsed + "s)...") : ("正在探测 (" + elapsed + "秒)..."));
+      statEl.innerHTML = '<span class="km-ul-stat-dot-probing"></span> ' + ("正在探测 (" + elapsed + "秒)...");
       return;
     }
 
     const warnBanner = (nodeSnap && nodeSnap.webSshDisabled)
-      ? ('<div class="km-ul-warn-banner">⚠️ ' + (prefs.lang === "en" ? "Remote exec disabled on agent (--disable-web-ssh)" : "该节点已开启 --disable-web-ssh，远程命令下发已被禁用。请在 VPS 启动参数中移除此开关。") + '</div>')
+      ? ('<div class="km-ul-warn-banner">⚠️ ' + "该节点已开启 --disable-web-ssh，远程命令下发已被禁用。请在 VPS 启动参数中移除此开关。" + '</div>')
       : "";
 
     if (!nodeSnap || !Array.isArray(nodeSnap.services) || nodeSnap.services.length === 0) {
       let emptyMsg = t("no_snapshot");
       const lastError = dataError || (nodeSnap && nodeSnap.error) || (snapshotData && snapshotData.telemetry && snapshotData.telemetry.lastError);
       if (lastError) {
-        emptyMsg = (prefs.lang === "en" ? "Probe unavailable: " : "探测异常：") + lastError;
+        emptyMsg = "探测异常：" + lastError;
       }
       container.innerHTML = warnBanner + '<div class="km-ul-empty-state" style="cursor:pointer;" onclick="document.getElementById(\'km-ul-debug-btn\').click()">' + escapeHTML(emptyMsg) + "</div>";
-      statEl.textContent = lastError ? (prefs.lang === "en" ? "Failed" : "探测失败") : "0 / 0";
+      statEl.textContent = lastError ? "探测失败" : "0 / 0";
       return;
     }
 
@@ -1019,7 +961,7 @@
     }
 
     statEl.textContent = unlockedCount + " / " + totalShown + " " + t("unlocked_stat") +
-      ((dataError || nodeSnap.error) ? (prefs.lang === "en" ? " · Last update failed (cached)" : " · 更新失败（保留上次结果）") : "");
+      ((dataError || nodeSnap.error) ? " · 更新失败（保留上次结果）" : "");
     statEl.title = dataError || nodeSnap.error || "";
   }
 

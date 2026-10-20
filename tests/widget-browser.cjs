@@ -10,19 +10,21 @@ const parser=require('../plugin/lib/parser');
     const page=await browser.newPage({viewport:{width:1280,height:900}});
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     const fixture=parser.parseUnlockTestOutput(fs.readFileSync(path.join(__dirname,'fixtures/sgoci-output.txt'),'utf8'));
-    await page.addInitScript(()=>localStorage.setItem('komari_unlock_test_widget_v1',JSON.stringify({lang:'zh-CN',ipFilter:'6'})));
+    await page.addInitScript(()=>localStorage.setItem('komari_unlock_test_widget_v1',JSON.stringify({lang:'en',ipFilter:'6'})));
     await page.route('**/*',async route=>{
       const u=new URL(route.request().url());
       if(u.pathname==='/api/nodes') return route.fulfill({json:{data:[{uuid:'a',name:'SG.OCI'}]}});
       if(u.pathname==='/api/me') return route.fulfill({json:{logged_in:true}});
       if(u.pathname==='/api/plugin/unlock-test/snapshot') return route.fulfill({json:{status:'success',data:{regions:['0','11'],nodes:{a:{uuid:'a',name:'SG.OCI',services:fixture.services}},telemetry:{},activeTask:null}}});
       if(u.pathname.startsWith('/assets/')) return route.fulfill({path:path.join(__dirname,'../plugin',u.pathname),contentType:u.pathname.endsWith('.css')?'text/css':'application/javascript'});
-      if(u.pathname==='/') return route.fulfill({contentType:'text/html',body:'<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/assets/widget.css"></head><body style="background:#090d16;color:#dce8f5;font:16px system-ui;padding:24px"><main><h1>节点监控</h1><div data-uuid="a">SG.OCI</div></main><script src="/assets/logos.js"></script><script src="/assets/widget.js"></script></body></html>'});
+      if(u.pathname==='/') return route.fulfill({contentType:'text/html',body:'<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/assets/widget.css"></head><body style="background:#090d16;color:#dce8f5;font:16px system-ui;padding:24px"><main><h1>节点监控</h1><div data-uuid="a">SG.OCI</div></main><script src="/assets/logos.js"></script><script src="/assets/widget.js"></script></body></html>'});
       return route.abort();
     });
     await page.goto('https://widget.test/');
     await page.waitForFunction(()=>document.querySelectorAll('.km-ul-service-card').length===33);
     assert.equal(await page.locator('[data-ip]').count(),0);
+    assert.equal(await page.locator('#km-ul-lang-btn, #km-ul-export-btn, #km-ul-import-btn, #km-ul-import-input').count(),0);
+    assert.equal(await page.locator('#km-ul-title-text').innerText(),'流媒体与 AI 解锁');
     async function label(name){return page.locator('.km-ul-service-card').filter({has:page.locator('.km-ul-service-name',{hasText:new RegExp('^'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$')})}).locator('.km-ul-region-sub').innerText();}
     assert.equal(await label('Disney+'),'V6 SG');
     assert.equal(await label('Netflix'),'SG');

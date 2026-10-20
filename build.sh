@@ -5,9 +5,10 @@ ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_DIR="$ROOT_DIR/plugin"
 DIST_DIR="$ROOT_DIR/dist"
 ZIP_FILE="$DIST_DIR/unlock-test.zip"
-ROOT_ZIP="$ROOT_DIR/unlock-test.zip"
 MANIFEST="$PLUGIN_DIR/komari-plugin.json"
 V1_FILE="$ROOT_DIR/v1.json"
+
+cd "$ROOT_DIR"
 
 # 1. 沿袭 NetForecast 版本命名规则 (YY.MMDD.Patch) 并在每次本地打包时自增末位版本号
 python3 - << 'EOF'
@@ -46,13 +47,12 @@ print(f"[*] Version bumped: {cur_ver} -> {new_ver}")
 EOF
 
 mkdir -p "$DIST_DIR"
-rm -f "$ZIP_FILE" "$ROOT_ZIP"
+rm -f "$ZIP_FILE"
 
 find "$PLUGIN_DIR" -name ".DS_Store" -delete 2>/dev/null || true
 
 cd "$PLUGIN_DIR"
 zip -r -q "$ZIP_FILE" komari-plugin.json script.js lib assets pages -x "*.DS_Store*" -x "__MACOSX*"
-cp "$ZIP_FILE" "$ROOT_ZIP"
 cd "$ROOT_DIR"
 
 if command -v shasum >/dev/null 2>&1; then
@@ -95,5 +95,4 @@ except Exception as e:
 EOF
 
 echo "Built package: $ZIP_FILE"
-echo "Root package:  $ROOT_ZIP"
 echo "SHA-256:       $SHA256"

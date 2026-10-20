@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const vm = require('node:vm');
-const { spawnSync } = require('node:child_process');
+const { spawn, spawnSync } = require('node:child_process');
 const parser = require('../plugin/lib/parser');
 const source = fs.readFileSync(path.join(__dirname, '../plugin/lib/probe.js'), 'utf8');
 const output = fs.readFileSync(path.join(__dirname, 'fixtures/sgoci-output.txt'), 'utf8');
@@ -314,4 +314,130 @@ test("pollTaskUntilDone flags webSshDisabled on node when task fails and agent h
   const node = h.snapshot().nodes.a;
   assert.equal(node.webSshDisabled, true);
   assert.match(node.error, /disable-web-ssh/);
+});
+
+test('cancel without an active task never dispatches a probe', async t => {
+  const h = harness(t);
+  assert.equal((await h.manager.triggerProbe({cancel:true})).cancelled, true);
+  assert.equal(h.calls.length, 0);
+});
+
+test('force requests preserve tracking of the running remote process', async t => {
+  const h = harness(t);
+  await h.manager.triggerProbe();
+  const original = h.snapshot().activeTask;
+  assert.equal((await h.manager.triggerProbe({force:true})).reason, 'already_running');
+  assert.equal(h.snapshot().activeTask, original);
+  assert.equal(h.calls.filter(c => c.method === 'admin:exec').length, 1);
+});
+
+test('cancel signals only the exact remote run and waits for completion', async t => {
+  const h = harness(t);
+  await h.manager.triggerProbe();
+  const task = h.snapshot().activeTask;
+  await h.manager.triggerProbe({cancel:true});
+  await h.manager.triggerProbe({cancel:true});
+  assert.equal(h.snapshot().activeTask, task);
+  const execs = h.calls.filter(c => c.method === 'admin:exec');
+  assert.equal(execs.length, 2);
+  assert.ok(execs[1].params.command.includes('/tmp/km-unlock-' + task.runId));
+  assert.ok(execs[1].params.command.includes('/cancel'));
+});
+
+test('fresh visibility hides changed nodes, removes deleted nodes, and fails closed', async t => {
+  const clients = [{uuid:'a',hidden:false}];
+  let unavailable = false;
+  const h = harness(t, {clients,call:m => {
+    if (m === 'admin:listClients' && unavailable) throw Error('unavailable');
+    if (m === 'admin:getTaskById') return {results:[result('a')]};
+  }});
+  await h.manager.triggerProbe(); await h.tick();
+  assert.ok(h.manager.getPublicSnapshot(false).nodes.a);
+  clients[0].hidden = true;
+  await h.manager.refreshClientMetadata();
+  assert.equal(h.manager.getPublicSnapshot(false).nodes.a, undefined);
+  assert.ok(!JSON.stringify(h.manager.getPublicSnapshot(false).lastTask).includes('"a"'));
+  clients.length = 0;
+  await h.manager.refreshClientMetadata();
+  assert.equal(h.manager.getPublicSnapshot(true).nodes.a, undefined);
+  unavailable = true;
+  await assert.rejects(h.manager.refreshClientMetadata(), /unavailable/);
+  assert.equal(Object.keys(h.manager.getPublicSnapshot(false).nodes).length, 0);
+});
+
+test('explicit empty targets do not expand to every node', async t => {
+  const h = harness(t);
+  assert.equal((await h.manager.triggerProbe({clients:[]})).triggered, false);
+  assert.equal(h.calls.filter(c => c.method === 'admin:exec').length, 0);
+});
+
+test('new nodes appear as untested without fabricated service results', async t => {
+  const h = harness(t);
+  await h.manager.refreshClientMetadata();
+  assert.equal(h.manager.getPublicSnapshot(false).nodes.a.services.length, 0);
+  assert.equal(h.manager.getPublicSnapshot(false).nodes.a.updatedAt, null);
+});
+
+test('late per-node diagnostics after unload cannot overwrite a snapshot', async t => {
+  let resolve;
+  const h = harness(t,{call:m => {
+    if (m === 'admin:getTaskById') return {results:[{...result('a'), result:'', exit_code:1}]};
+    if (m === 'admin:getAgentStartupConfig') return new Promise(r => resolve = r);
+  }});
+  await h.manager.triggerProbe();
+  const pending = h.tick();
+  await new Promise(r => setImmediate(r));
+  h.manager.shutdown(); resolve({disable_web_ssh:true}); await pending;
+  assert.equal(h.snapshot().nodes.a, undefined);
+});
+
+test('remote lock prevents overlap; cancellation releases it and exact logs stay isolated', async t => {
+  const h = harness(t);
+  const run1 = 'lock-' + process.pid + '-' + Date.now();
+  const run2 = run1 + '-busy', run3 = run1 + '-next';
+  const binary = path.join(h.dir,'wait-bin');
+  fs.writeFileSync(binary,'#!/bin/sh\nprintf "first\\n"\ntouch "'+h.dir+'/ready"\nexec sleep 20\n',{mode:0o700});
+  const lock = path.join(h.dir,'lock');
+  const command = (run, bin) => h.lib.buildRemoteCommand(h.lib.normalizeConfig({}),run)
+    .replace('BIN=""','BIN="'+bin+'"')
+    .replace(/for candidate in [\s\S]*?\ndone/,'true')
+    .replace('LOCK="/tmp/km-unlock-$(id -u).lock"','LOCK="'+lock+'"');
+  const child = spawn('sh',['-s'],{stdio:['pipe','pipe','pipe']});
+  t.after(() => {child.kill(); for (const run of [run1,run2,run3]) fs.rmSync('/tmp/km-unlock-'+run,{recursive:true,force:true});});
+  let firstOutput=''; child.stdout.on('data',data=>firstOutput+=data);
+  const finished = new Promise((resolve,reject) => {child.on('close',code=>resolve(code));child.on('error',reject);});
+  child.stdin.end(command(run1,binary));
+  const deadline = Date.now()+5000;
+  while (!fs.existsSync(path.join(h.dir,'ready'))) {
+    assert.ok(Date.now()<deadline,'first process did not start');
+    await new Promise(resolve=>setTimeout(resolve,20));
+  }
+  const busy = spawnSync('sh',['-s'],{input:command(run2,binary),encoding:'utf8',timeout:5000});
+  assert.equal(busy.status,75);
+  assert.match(busy.stdout,/Another unlock probe/);
+  fs.writeFileSync('/tmp/km-unlock-'+run1+'/cancel','');
+  assert.equal(await finished,130);
+  assert.equal(firstOutput,'first\n');
+  assert.equal(fs.existsSync(lock),false);
+  fs.writeFileSync(binary,'#!/bin/sh\nprintf "second\\n"\n',{mode:0o700});
+  const second = spawnSync('sh',['-s'],{input:command(run3,binary),encoding:'utf8',timeout:5000});
+  assert.equal(second.status,0); assert.equal(second.stdout,'second\n');
+  const previous = spawnSync('sh',['-s'],{input:h.lib.buildRecoveryCommand(run1),encoding:'utf8',timeout:5000});
+  assert.equal(previous.status,130); assert.equal(previous.stdout,'first\n');
+});
+
+test('public snapshot HTTP route checks current visibility and rejects unavailable ACL data', async () => {
+  const routes = {}; let unavailable = false, refreshed = false;
+  const server = {static(){},route(method,url,handler){routes[method+' '+url]=handler;},registerRPC(){},injectHTML(){}};
+  const manager = {loadSnapshotFromDisk(){}, async refreshClientMetadata(){if(unavailable) throw Error('database unavailable'); refreshed=true;},
+    getPublicSnapshot(admin){assert.equal(refreshed,true); return {admin,nodes:{}};}};
+  const context = vm.createContext({require:name=>name==='server'?server:{createProbeManager:()=>manager},setTimeout(){},console:{info(){}}});
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'../plugin/script.js'),'utf8'),context);context.load();
+  const request = async () => {
+    const res={setHeader(){},end(text){this.body=JSON.parse(text);}};
+    await routes['GET /api/plugin/unlock-test/snapshot']({context:{role:'guest'}},res);return res;
+  };
+  assert.equal((await request()).body.data.admin,false);
+  unavailable=true; refreshed=false;
+  const failed=await request();assert.equal(failed.statusCode,503);assert.equal(failed.body.data,undefined);
 });

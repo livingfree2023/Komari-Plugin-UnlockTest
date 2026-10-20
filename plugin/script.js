@@ -31,8 +31,13 @@ function load() {
   server.static("/api/plugin/unlock-test/pages", "pages");
 
   // 2. 读路径接口：零阻塞返回预热快照与当前勾选的 -region 配置
-  server.route("GET", "/api/plugin/unlock-test/snapshot", (req, res) => {
+  server.route("GET", "/api/plugin/unlock-test/snapshot", async (req, res) => {
     const isAdmin = isAdministrator(req);
+    try { await probeManager.refreshClientMetadata(); }
+    catch (err) {
+      sendJSON(res, 503, {status: "error", message: "Unable to verify current node visibility"});
+      return;
+    }
     const data = probeManager.getPublicSnapshot(isAdmin);
     sendJSON(res, 200, {
       status: "success",
@@ -54,7 +59,7 @@ function load() {
   });
 
   // 4. 写路径接口：管理员手动触发后台探测或取消卡死任务
-  // [Handover 优化]: 解析 bodyObj 中的 force 与 cancel 参数，支持抢占式触发与手动中断
+  // 取消请求保留任务跟踪，直到远端返回；重复请求不会并发重启。
   server.route("POST", "/api/plugin/unlock-test/probe", async (req, res) => {
     const isAdmin = isAdministrator(req);
     if (!isAdmin) {
@@ -73,12 +78,17 @@ function load() {
         sendJSON(res, 400, { status: "error", message: "Invalid JSON body" });
         return;
       }
-      if (!bodyObj || typeof bodyObj !== "object") {
+      if (!bodyObj || typeof bodyObj !== "object" || Array.isArray(bodyObj)) {
         sendJSON(res, 400, { status: "error", message: "Expected an object" });
         return;
       }
     }
 
+    if (bodyObj.clients !== undefined && (!Array.isArray(bodyObj.clients) ||
+        bodyObj.clients.some(function (uuid) { return typeof uuid !== "string"; }))) {
+      sendJSON(res, 400, {status: "error", message: "clients must be an array of node UUIDs"});
+      return;
+    }
     try {
       const result = await probeManager.triggerProbe({
         clients: Array.isArray(bodyObj.clients) ? bodyObj.clients : undefined,

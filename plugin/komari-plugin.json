@@ -15,7 +15,7 @@
     "zh-CN": "livingfree2023 (livingfree2023@outlook.com)",
     "en": "livingfree2023 (livingfree2023@outlook.com)"
   },
-  "version": "26.1020.2",
+  "version": "26.1020.3",
   "url": "https://github.com/livingfree2023/Komari-Plugin-UnlockTest",
   "komari": ">=1.0.5",
   "entry": "script.js",
