@@ -1,6 +1,6 @@
 # Komari Plugin UnlockTest — 生产级开发计划 (Development Plan)
 
-> **历史开发计划**：保留早期需求与方案记录；当前实现以 [specification.md](specification.md) 为准，开发与发布约定见 [agent.md](agent.md)。
+> **历史开发计划**：保留早期需求与方案记录；当前实现以 [specification.md](specification.md) 为准。
 
 ## 1. 需求确认基线 (Confirmed Baseline)
 
