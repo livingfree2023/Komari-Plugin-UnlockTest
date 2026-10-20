@@ -1,0 +1,81 @@
+name: Release UnlockTest Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [created, published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Package and Release Plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Plugin Distribution ZIP
+        run: |
+          cd plugin
+          zip -r ../unlock-test.zip . -x ".*" -x "__MACOSX"
+          cd ..
+          echo "Package created:"
+          ls -lh unlock-test.zip
+          sha256sum unlock-test.zip
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unlock-test-plugin
+          path: unlock-test.zip
+          retention-days: 30
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: unlock-test.zip
+          body_path: ${{ hashFiles('RELEASE_NOTES.md') != '' && 'RELEASE_NOTES.md' || '' }}
+          generate_release_notes: ${{ hashFiles('RELEASE_NOTES.md') == '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-update v1.json and commit to main
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG_NAME#v}"
+          SHA256=$(sha256sum unlock-test.zip | awk '{print $1}')
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/unlock-test.zip"
+          UPDATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+
+          # 切换并同步 main 分支
+          git checkout main
+          git pull origin main
+
+          # 更新根目录下 v1.json 中的版本、下载链接与真实 SHA256
+          python3 -c "
+          import json
+          with open('v1.json', 'r', encoding='utf-8') as f:
+              data = json.load(f)
+          data['updated_at'] = '${UPDATED_AT}'
+          data['plugins'][0]['version'] = '${VERSION}'
+          data['plugins'][0]['download'] = '${DOWNLOAD_URL}'
+          data['plugins'][0]['sha256'] = '${SHA256}'
+          with open('v1.json', 'w', encoding='utf-8') as f:
+              json.dump(data, f, indent=2, ensure_ascii=False)
+              f.write('\n')
+          "
+
+          # 提交并推送至 main 分支
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add v1.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update v1.json for ${TAG_NAME} [skip ci]" && git push origin main)
