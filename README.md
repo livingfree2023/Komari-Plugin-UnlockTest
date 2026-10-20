@@ -1,5 +1,7 @@
 # Komari Plugin: Media & AI Unlock Test (`unlock-test`)
 
+![Media & AI Unlock Test Preview](https://raw.githubusercontent.com/livingfree2023/Komari-Plugin-UnlockTest/main/assets/preview.svg)
+
 基于 [HsukqiLee/MediaUnlockTest](https://github.com/HsukqiLee/MediaUnlockTest) 的 Komari 流媒体与 AI 解锁检测插件。通过 `server.injectHTML` 在 Komari 首页注入可拖动浮层展示各服务 Logo、可解锁绿框 / 未解锁红框及底部区域缩写，并提供原生 `configuration` 托管配置面板勾选检测区域（`-region`）。
 
 ## 核心特性
