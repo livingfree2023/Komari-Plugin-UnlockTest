@@ -8,3 +8,7 @@ komari/
 dist/
 node_modules/
 komari-agent/
+
+# Personal guidelines and retired handover notes
+/agent_general.md
+/HANDOVER_IMPLEMENTATION_SUMMARY.md

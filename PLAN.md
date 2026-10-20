@@ -1,6 +1,6 @@
 # Komari Plugin UnlockTest — 生产级开发计划 (Development Plan)
 
-> 遵循 `agent_general.md` 极俭工程学准则（零 Mock 数据、读写彻底分离、Local-First 本地优先、大字号高对比度终端风、中英双语、About 归属署名 `livingfree2023@outlook.com`）。
+> **历史开发计划**：保留早期需求与方案记录；当前实现以 [specification.md](specification.md) 为准，开发与发布约定见 [agent.md](agent.md)。
 
 ## 1. 需求确认基线 (Confirmed Baseline)
 
