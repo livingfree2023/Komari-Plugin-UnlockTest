@@ -5,10 +5,50 @@
 (function () {
   "use strict";
 
-  // 管理员后台与终端页面不渲染前台浮层
+  // 严格仅在前台两个页面（首页 / 与实例详情页 /instance/...）显示浮层；管理后台、矩阵页、iframe 绝不展示
+  function isAllowedFrontendRoute() {
+    try {
+      if (window.self !== window.top) return false;
+
+      const p = (window.location.pathname || "").toLowerCase();
+      const h = (window.location.hash || "").toLowerCase();
+      const full = p + " " + h;
+
+      if (full.indexOf("/admin") !== -1 ||
+          full.indexOf("/terminal") !== -1 ||
+          full.indexOf("/api/plugin") !== -1 ||
+          full.indexOf("/plugin") !== -1 ||
+          full.indexOf("matrix.html") !== -1 ||
+          full.indexOf("preview.html") !== -1 ||
+          full.indexOf("public.html") !== -1 ||
+          full.indexOf("admin.html") !== -1 ||
+          full.indexOf("/login") !== -1 ||
+          full.indexOf("/auth") !== -1 ||
+          full.indexOf("/settings") !== -1) {
+        return false;
+      }
+
+      const isInstance = (
+        p.indexOf("/instance") !== -1 || h.indexOf("/instance") !== -1 ||
+        p.indexOf("/node") !== -1 || h.indexOf("/node") !== -1 ||
+        p.indexOf("/server") !== -1 || h.indexOf("/server") !== -1
+      );
+      if (isInstance) return true;
+
+      const cleanP = p.replace(/\/+$/, "") || "/";
+      const cleanH = h.replace(/\/+$/, "") || "";
+      const isHome = (cleanP === "/" || cleanP === "/index.html") &&
+                     (cleanH === "" || cleanH === "#" || cleanH === "#/" || cleanH === "#/home" || cleanH === "#/overview");
+      if (isHome) return true;
+
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function isExcludedAdminRoute() {
-    const p = window.location.pathname || "";
-    return p.indexOf("/admin") === 0 || p.indexOf("/terminal") === 0;
+    return !isAllowedFrontendRoute();
   }
 
   const STORAGE_KEY = "komari_unlock_test_widget_v1";
@@ -312,14 +352,16 @@
   }
 
   function syncNodesWithCurrentPage() {
-    if (isExcludedAdminRoute()) {
-      const root = document.getElementById("km-unlock-floating-root");
-      if (root) root.style.display = "none";
-      return;
-    }
     const root = document.getElementById("km-unlock-floating-root");
-    if (root && root.style.display === "none") {
-      root.style.display = "";
+    if (isExcludedAdminRoute()) {
+      if (root) {
+        root.style.setProperty("display", "none", "important");
+        const overlay = root.querySelector(".km-unlock-floating-overlay");
+        if (overlay) overlay.style.setProperty("display", "none", "important");
+      }
+      return;
+    } else {
+      if (root && root.style.display === "none") root.style.setProperty("display", "", "");
     }
 
     pageVisibleNodes = detectVisibleNodesOnPage();
@@ -1074,7 +1116,28 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
+    setInterval(function () {
+      const root = document.getElementById("km-unlock-floating-root");
+      if (isExcludedAdminRoute()) {
+        if (root) {
+          root.style.setProperty("display", "none", "important");
+          const overlay = root.querySelector(".km-unlock-floating-overlay");
+          if (overlay) overlay.style.setProperty("display", "none", "important");
+        }
+      } else {
+        if (!root) {
+          mountWidgetDOM();
+        } else if (root.style.display === "none") {
+          root.style.setProperty("display", "", "");
+        }
+      }
+    }, 500);
+
     async function refreshLoop() {
+      const root = document.getElementById("km-unlock-floating-root");
+      if (isExcludedAdminRoute()) {
+        if (root) root.style.setProperty("display", "none", "important");
+      }
       if (!isExcludedAdminRoute()) {
         if (!document.getElementById("km-unlock-floating-root")) mountWidgetDOM();
         await fetchNodesAndSnapshot();

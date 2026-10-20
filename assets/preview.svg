@@ -2,14 +2,21 @@
   <defs>
     <!-- 背景渐变与科技微光 -->
     <linearGradient id="posterBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#050811"/>
-      <stop offset="50%" stop-color="#0a1020"/>
-      <stop offset="100%" stop-color="#0b1329"/>
+      <stop offset="0%" stop-color="#060a14"/>
+      <stop offset="45%" stop-color="#0a1022"/>
+      <stop offset="100%" stop-color="#0d152c"/>
+    </linearGradient>
+
+    <!-- 主标题渐变色 -->
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="65%" stop-color="#e0f2fe"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
     </linearGradient>
 
     <!-- 柔和径向科技氛围灯 -->
-    <radialGradient id="cyanAmbient" cx="15%" cy="20%" r="55%">
-      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.22"/>
+    <radialGradient id="cyanAmbient" cx="15%" cy="25%" r="55%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.25"/>
       <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="emeraldAmbient" cx="80%" cy="30%" r="50%">
@@ -23,12 +30,12 @@
 
     <!-- 窗口与卡片高斯阴影 -->
     <filter id="winShadow" x="-15%" y="-15%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000000" flood-opacity="0.65"/>
-      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#06b6d4" flood-opacity="0.12"/>
+      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000000" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#06b6d4" flood-opacity="0.15"/>
     </filter>
     <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="30" stdDeviation="40" flood-color="#000000" flood-opacity="0.75"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="16" flood-color="#06b6d4" flood-opacity="0.25"/>
+      <feDropShadow dx="0" dy="30" stdDeviation="40" flood-color="#000000" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="16" flood-color="#06b6d4" flood-opacity="0.28"/>
     </filter>
     <filter id="btnGlow" x="-30%" y="-30%" width="160%" height="160%">
       <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#06b6d4" flood-opacity="0.6"/>
@@ -44,21 +51,21 @@
       <stop offset="100%" stop-color="#06b6d4"/>
     </linearGradient>
     <linearGradient id="v4BadgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="rgba(16, 185, 129, 0.24)"/>
+      <stop offset="0%" stop-color="rgba(16, 185, 129, 0.28)"/>
       <stop offset="100%" stop-color="rgba(16, 185, 129, 0.12)"/>
     </linearGradient>
     <linearGradient id="v6BadgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="rgba(6, 182, 212, 0.24)"/>
+      <stop offset="0%" stop-color="rgba(6, 182, 212, 0.28)"/>
       <stop offset="100%" stop-color="rgba(6, 182, 212, 0.12)"/>
     </linearGradient>
     <linearGradient id="lockedBadgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="rgba(239, 68, 68, 0.22)"/>
+      <stop offset="0%" stop-color="rgba(239, 68, 68, 0.25)"/>
       <stop offset="100%" stop-color="rgba(239, 68, 68, 0.10)"/>
     </linearGradient>
 
     <style>
-      .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-      .font-mono { font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace; }
+      .font-sans { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+      .font-mono { font-family: "JetBrains Mono", "Fira Code", "SF Mono", Menlo, Consolas, monospace; }
     </style>
   </defs>
 
@@ -84,593 +91,515 @@
     <line x1="1400" y1="0" x2="1400" y2="900"/>
   </g>
 
-  <!-- 左侧背景装饰：节点状态指标卡片堆叠 -->
-  <g transform="translate(60, 220)">
-    <!-- 卡片 1 -->
-    <g transform="translate(0, 0)">
-      <rect width="210" height="64" rx="12" fill="rgba(15, 23, 42, 0.5)" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1"/>
-      <text x="16" y="28" font-size="18">🇸🇬</text>
-      <text x="44" y="27" class="font-sans" font-size="13" font-weight="700" fill="#f8fafc">SG.OCI</text>
-      <rect x="44" y="36" width="60" height="16" rx="4" fill="rgba(6, 182, 212, 0.15)"/>
-      <text x="74" y="48" text-anchor="middle" class="font-mono" font-size="9" fill="#67e8f9">OCI; SG</text>
-      <circle cx="186" cy="32" r="4" fill="#34d399"/>
-      <text x="176" y="36" text-anchor="end" class="font-mono" font-size="10" font-weight="700" fill="#34d399">28/33</text>
+  <!-- ========================================================================= -->
+  <!-- 左侧视觉核心：主标题、副标题与 4 项核心亮点卡片（完全对齐 NetForecast 布局） -->
+  <!-- ========================================================================= -->
+  <g transform="translate(80, 110)">
+    <!-- 主标题区域 -->
+    <text x="0" y="60" class="font-sans" font-size="58" font-weight="900" fill="url(#titleGrad)" letter-spacing="-1">UnlockTest</text>
+    <text x="0" y="106" class="font-sans" font-size="25" font-weight="800" fill="#ffffff" letter-spacing="0.5">流媒体与 AI 解锁检测</text>
+    <text x="0" y="136" class="font-sans" font-size="13" fill="#94a3b8" letter-spacing="0.2">面向 Komari 监控面板的流媒体与 AI 全景解锁感知引擎</text>
+
+    <!-- 亮点卡片 1：全景后台「解锁矩阵」大表 -->
+    <g transform="translate(0, 175)">
+      <rect width="440" height="92" rx="14" fill="rgba(30, 41, 59, 0.55)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+      <g transform="translate(16, 22)">
+        <rect width="48" height="48" rx="12" fill="rgba(6, 182, 212, 0.2)" stroke="rgba(6, 182, 212, 0.45)" stroke-width="1.2"/>
+        <text x="24" y="32" text-anchor="middle" font-size="22">📊</text>
+      </g>
+      <g transform="translate(76, 26)">
+        <text x="0" y="14" class="font-sans" font-size="15" font-weight="700" fill="#ffffff">全景后台「解锁矩阵」大表</text>
+        <text x="0" y="36" class="font-sans" font-size="12" fill="#94a3b8">双向冻结窗格，自适应 Region，双栈状态全景透视</text>
+      </g>
     </g>
 
-    <!-- 卡片 2 -->
-    <g transform="translate(0, 78)">
-      <rect width="210" height="64" rx="12" fill="rgba(15, 23, 42, 0.5)" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1"/>
-      <text x="16" y="28" font-size="18">🇺🇸</text>
-      <text x="44" y="27" class="font-sans" font-size="13" font-weight="700" fill="#f8fafc">NYC.MassGrid</text>
-      <rect x="44" y="36" width="40" height="16" rx="4" fill="rgba(99, 102, 241, 0.15)"/>
-      <text x="64" y="48" text-anchor="middle" class="font-mono" font-size="9" fill="#a5b4fc">US</text>
-      <circle cx="186" cy="32" r="4" fill="#34d399"/>
-      <text x="176" y="36" text-anchor="end" class="font-mono" font-size="10" font-weight="700" fill="#34d399">31/33</text>
+    <!-- 亮点卡片 2：纯 Native 指令下发与并发保护 -->
+    <g transform="translate(0, 282)">
+      <rect width="440" height="92" rx="14" fill="rgba(30, 41, 59, 0.55)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+      <g transform="translate(16, 22)">
+        <rect width="48" height="48" rx="12" fill="rgba(245, 158, 11, 0.2)" stroke="rgba(245, 158, 11, 0.45)" stroke-width="1.2"/>
+        <text x="24" y="32" text-anchor="middle" font-size="22">⚡</text>
+      </g>
+      <g transform="translate(76, 26)">
+        <text x="0" y="14" class="font-sans" font-size="15" font-weight="700" fill="#ffffff">纯 Native 指令下发与并发保护</text>
+        <text x="0" y="36" class="font-sans" font-size="12" fill="#94a3b8">官方 Agent 原生下发，NAT 小内存防 OOM 自动熔断</text>
+      </g>
     </g>
 
-    <!-- 卡片 3 -->
-    <g transform="translate(0, 156)">
-      <rect width="210" height="64" rx="12" fill="rgba(15, 23, 42, 0.5)" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1"/>
-      <text x="16" y="28" font-size="18">🇯🇵</text>
-      <text x="44" y="27" class="font-sans" font-size="13" font-weight="700" fill="#f8fafc">JP.GC | 8th</text>
-      <rect x="44" y="36" width="40" height="16" rx="4" fill="rgba(244, 63, 94, 0.15)"/>
-      <text x="64" y="48" text-anchor="middle" class="font-mono" font-size="9" fill="#fda4af">JP</text>
-      <circle cx="186" cy="32" r="4" fill="#34d399"/>
-      <text x="176" y="36" text-anchor="end" class="font-mono" font-size="10" font-weight="700" fill="#34d399">30/33</text>
+    <!-- 亮点卡片 3：动态定向探测与状态感知 -->
+    <g transform="translate(0, 389)">
+      <rect width="440" height="92" rx="14" fill="rgba(30, 41, 59, 0.55)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+      <g transform="translate(16, 22)">
+        <rect width="48" height="48" rx="12" fill="rgba(239, 68, 68, 0.2)" stroke="rgba(239, 68, 68, 0.45)" stroke-width="1.2"/>
+        <text x="24" y="32" text-anchor="middle" font-size="22">🛡️</text>
+      </g>
+      <g transform="translate(76, 26)">
+        <text x="0" y="14" class="font-sans" font-size="15" font-weight="700" fill="#ffffff">动态定向探测与状态感知</text>
+        <text x="0" y="36" class="font-sans" font-size="12" fill="#94a3b8">支持按显示节点一键并发复检，Web SSH 限制预警</text>
+      </g>
     </g>
 
-    <!-- 卡片 4 -->
-    <g transform="translate(0, 234)">
-      <rect width="210" height="64" rx="12" fill="rgba(15, 23, 42, 0.5)" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1"/>
-      <text x="16" y="28" font-size="18">🇭🇰</text>
-      <text x="44" y="27" class="font-sans" font-size="13" font-weight="700" fill="#f8fafc">HK.ZT | 11th</text>
-      <rect x="44" y="36" width="40" height="16" rx="4" fill="rgba(245, 158, 11, 0.15)"/>
-      <text x="64" y="48" text-anchor="middle" class="font-mono" font-size="9" fill="#fde68a">HK</text>
-      <circle cx="186" cy="32" r="4" fill="#34d399"/>
-      <text x="176" y="36" text-anchor="end" class="font-mono" font-size="10" font-weight="700" fill="#34d399">24/33</text>
+    <!-- 亮点卡片 4：前台悬浮小组件 (可自由拖拽) -->
+    <g transform="translate(0, 496)">
+      <rect width="440" height="92" rx="14" fill="rgba(30, 41, 59, 0.55)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+      <g transform="translate(16, 22)">
+        <rect width="48" height="48" rx="12" fill="rgba(16, 185, 129, 0.2)" stroke="rgba(16, 185, 129, 0.45)" stroke-width="1.2"/>
+        <text x="24" y="32" text-anchor="middle" font-size="22">🪟</text>
+      </g>
+      <g transform="translate(76, 26)">
+        <text x="0" y="14" class="font-sans" font-size="15" font-weight="700" fill="#ffffff">前台悬浮小组件 (可自由拖拽)</text>
+        <text x="0" y="36" class="font-sans" font-size="12" fill="#94a3b8">48px 几何悬浮图标，居中展开，单节点自动聚焦</text>
+      </g>
     </g>
   </g>
 
   <!-- ========================================================================= -->
-  <!-- 核心主视觉 1：后台管理大表「解锁矩阵」(微倾斜立体透视呈现) -->
+  <!-- 中右侧主视觉 1：后台管理大表「解锁矩阵」(立体透视重叠在背景) -->
   <!-- ========================================================================= -->
-  <g transform="translate(200, 110) rotate(-1.2) skewX(0.8)" filter="url(#winShadow)">
-    <!-- 窗口主体 (980 x 620) -->
-    <rect width="980" height="620" rx="16" fill="#090d16" stroke="rgba(255, 255, 255, 0.14)" stroke-width="1.5"/>
+  <g transform="translate(560, 95) rotate(-1.5) skewX(1.0)" filter="url(#winShadow)">
+    <!-- 窗口主体 (780 x 650) -->
+    <rect width="780" height="650" rx="16" fill="#090d16" stroke="rgba(255, 255, 255, 0.14)" stroke-width="1.5"/>
 
-    <!-- 窗口顶部标题栏 (macOS 风格) -->
+    <!-- 窗口顶部标题栏 -->
     <g>
-      <rect width="980" height="52" rx="16" fill="url(#winHeaderGrad)"/>
-      <rect y="36" width="980" height="16" fill="url(#winHeaderGrad)"/>
-      <line x1="0" y1="52" x2="980" y2="52" stroke="rgba(255, 255, 255, 0.08)"/>
+      <rect width="780" height="50" rx="16" fill="url(#winHeaderGrad)"/>
+      <rect y="34" width="780" height="16" fill="url(#winHeaderGrad)"/>
+      <line x1="0" y1="50" x2="780" y2="50" stroke="rgba(255, 255, 255, 0.08)"/>
 
       <!-- 红黄绿窗口按钮 -->
-      <circle cx="24" cy="26" r="6" fill="#ef4444"/>
-      <circle cx="44" cy="26" r="6" fill="#f59e0b"/>
-      <circle cx="64" cy="26" r="6" fill="#10b981"/>
+      <circle cx="22" cy="25" r="5.5" fill="#ef4444"/>
+      <circle cx="40" cy="25" r="5.5" fill="#f59e0b"/>
+      <circle cx="58" cy="25" r="5.5" fill="#10b981"/>
 
-      <!-- 标题与图标 -->
-      <g transform="translate(90, 14)">
+      <!-- 标题 -->
+      <g transform="translate(80, 13)">
         <rect width="24" height="24" rx="6" fill="url(#matrixBtnGrad)"/>
         <text x="12" y="17" text-anchor="middle" font-size="13">🌐</text>
-        <text x="34" y="17" class="font-sans" font-size="14" font-weight="700" fill="#f8fafc">解锁矩阵</text>
-        <text x="96" y="17" class="font-sans" font-size="12" fill="#64748b">Unlock Matrix</text>
+        <text x="34" y="17" class="font-sans" font-size="13" font-weight="700" fill="#f8fafc">解锁矩阵</text>
       </g>
 
-      <!-- 顶部统计胶囊 -->
-      <g transform="translate(680, 14)">
-        <rect width="84" height="24" rx="12" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(255, 255, 255, 0.1)"/>
-        <text x="42" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#94a3b8">节点: <tspan fill="#67e8f9" font-weight="700">16</tspan></text>
+      <!-- 统计小指标 -->
+      <g transform="translate(520, 13)">
+        <rect width="76" height="24" rx="12" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(255, 255, 255, 0.1)"/>
+        <text x="38" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#94a3b8">节点: <tspan fill="#67e8f9" font-weight="700">16</tspan></text>
 
-        <rect x="94" y="0" width="88" height="24" rx="12" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(255, 255, 255, 0.1)"/>
-        <text x="138" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#94a3b8">服务: <tspan fill="#67e8f9" font-weight="700">33</tspan></text>
+        <rect x="84" y="0" width="76" height="24" rx="12" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(255, 255, 255, 0.1)"/>
+        <text x="122" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#94a3b8">服务: <tspan fill="#67e8f9" font-weight="700">11</tspan></text>
 
-        <rect x="192" y="0" width="94" height="24" rx="12" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(255, 255, 255, 0.1)"/>
-        <text x="239" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#94a3b8">解锁率: <tspan fill="#34d399" font-weight="700">81.8%</tspan></text>
+        <rect x="168" y="0" width="84" height="24" rx="12" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(255, 255, 255, 0.1)"/>
+        <text x="210" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#94a3b8">解锁: <tspan fill="#34d399" font-weight="700">84.8%</tspan></text>
       </g>
     </g>
 
-    <!-- 工具栏：搜索、分类 Tabs 与 探测按钮 -->
-    <g transform="translate(24, 68)">
+    <!-- 工具与筛选栏 -->
+    <g transform="translate(20, 64)">
       <!-- 搜索框 -->
-      <rect width="210" height="34" rx="8" fill="#1e293b" stroke="rgba(255, 255, 255, 0.1)"/>
-      <text x="12" y="22" font-size="13">🔍</text>
-      <text x="34" y="21" class="font-sans" font-size="12" fill="#64748b">按节点名称或分组过滤...</text>
+      <rect width="180" height="32" rx="7" fill="#1e293b" stroke="rgba(255, 255, 255, 0.1)"/>
+      <text x="10" y="21" font-size="12">🔍</text>
+      <text x="28" y="20" class="font-sans" font-size="11" fill="#64748b">按节点名称过滤...</text>
 
-      <!-- 分类 Pills -->
-      <g transform="translate(226, 0)">
-        <rect width="92" height="34" rx="7" fill="rgba(6, 182, 212, 0.2)" stroke="#06b6d4" stroke-width="1.2"/>
-        <text x="46" y="21" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#67e8f9">全部平台 (33)</text>
+      <!-- 区域选择 -->
+      <g transform="translate(192, 0)">
+        <rect width="82" height="32" rx="6" fill="rgba(6, 182, 212, 0.2)" stroke="#06b6d4" stroke-width="1.2"/>
+        <text x="41" y="20" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#67e8f9">AI 矩阵 (11)</text>
 
-        <rect x="100" y="0" width="88" height="34" rx="7" fill="transparent" stroke="rgba(255, 255, 255, 0.1)"/>
-        <text x="144" y="21" text-anchor="middle" class="font-sans" font-size="12" fill="#94a3b8">跨国平台 (17)</text>
-
-        <rect x="196" y="0" width="78" height="34" rx="7" fill="transparent" stroke="rgba(255, 255, 255, 0.1)"/>
-        <text x="235" y="21" text-anchor="middle" class="font-sans" font-size="12" fill="#94a3b8">AI 矩阵 (12)</text>
-
-        <rect x="282" y="0" width="78" height="34" rx="7" fill="transparent" stroke="rgba(255, 255, 255, 0.1)"/>
-        <text x="321" y="21" text-anchor="middle" class="font-sans" font-size="12" fill="#94a3b8">亚洲专区 (4)</text>
+        <rect x="88" y="0" width="82" height="32" rx="6" fill="transparent" stroke="rgba(255, 255, 255, 0.1)"/>
+        <text x="129" y="20" text-anchor="middle" class="font-sans" font-size="11" fill="#94a3b8">跨国平台 (17)</text>
       </g>
 
-      <!-- ⚡ 探测当前显示节点 按钮 -->
-      <g transform="translate(740, 0)">
-        <rect width="192" height="34" rx="8" fill="url(#matrixBtnGrad)" filter="url(#btnGlow)"/>
-        <text x="24" y="21" font-size="13">⚡</text>
-        <text x="44" y="21" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">探测当前显示节点</text>
-        <rect x="154" y="7" width="26" height="20" rx="10" fill="rgba(0, 0, 0, 0.3)"/>
-        <text x="167" y="21" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#ffffff">16</text>
+      <!-- ⚡ 探测按钮 -->
+      <g transform="translate(560, 0)">
+        <rect width="176" height="32" rx="7" fill="url(#matrixBtnGrad)" filter="url(#btnGlow)"/>
+        <text x="20" y="20" font-size="12">⚡</text>
+        <text x="38" y="20" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">探测当前显示节点</text>
+        <rect x="142" y="6" width="24" height="20" rx="10" fill="rgba(0, 0, 0, 0.3)"/>
+        <text x="154" y="20" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#ffffff">16</text>
       </g>
     </g>
 
-    <!-- 大表格区域 (Table Grid) -->
-    <g transform="translate(24, 118)">
-      <!-- 表头 Header Row -->
-      <rect width="932" height="38" rx="6" fill="#0f172a" stroke="rgba(255, 255, 255, 0.08)"/>
-      <text x="16" y="23" class="font-sans" font-size="12" font-weight="700" fill="#94a3b8">VPS 节点 / 服务</text>
+    <!-- 大表表体 (Table Grid) -->
+    <g transform="translate(20, 110)">
+      <!-- 表头 Row -->
+      <rect width="740" height="36" rx="6" fill="#0f172a" stroke="rgba(255, 255, 255, 0.08)"/>
+      <text x="14" y="22" class="font-sans" font-size="11" font-weight="700" fill="#94a3b8">VPS 节点</text>
 
-      <!-- 列标题 -->
-      <g transform="translate(190, 0)">
-        <text x="26" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Netflix</text>
-        <text x="26" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">GLOBE</text>
+      <g transform="translate(160, 0)">
+        <text x="25" y="15" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">ChatGPT</text>
+        <text x="25" y="28" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
 
-        <text x="88" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Disney+</text>
-        <text x="88" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">GLOBE</text>
+        <text x="85" y="15" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Claude</text>
+        <text x="85" y="28" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
 
-        <text x="152" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">YouTube</text>
-        <text x="152" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">GLOBE</text>
+        <text x="145" y="15" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Gemini</text>
+        <text x="145" y="28" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
 
-        <text x="216" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Prime</text>
-        <text x="216" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">GLOBE</text>
+        <text x="205" y="15" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Copilot</text>
+        <text x="205" y="28" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
 
-        <text x="280" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">ChatGPT</text>
-        <text x="280" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
+        <text x="265" y="15" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Perplexity</text>
+        <text x="265" y="28" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
 
-        <text x="344" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Claude</text>
-        <text x="344" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
+        <text x="325" y="15" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Grok</text>
+        <text x="325" y="28" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
 
-        <text x="408" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Gemini</text>
-        <text x="408" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
+        <text x="385" y="15" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">DeepSeek</text>
+        <text x="385" y="28" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
 
-        <text x="472" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Copilot</text>
-        <text x="472" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
+        <text x="445" y="15" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Poe</text>
+        <text x="445" y="28" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
 
-        <text x="536" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Perplexity</text>
-        <text x="536" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
-
-        <text x="600" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Grok</text>
-        <text x="600" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
-
-        <text x="664" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">DeepSeek</text>
-        <text x="664" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
-
-        <text x="724" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">动画疯</text>
-        <text x="724" y="29" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">ASIA</text>
+        <text x="505" y="15" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#f8fafc">Mistral</text>
+        <text x="505" y="28" text-anchor="middle" class="font-sans" font-size="9" fill="#64748b">AI</text>
       </g>
 
-      <!-- 节点行 1: SG.OCI -->
-      <g transform="translate(0, 46)">
-        <rect width="932" height="42" rx="4" fill="rgba(15, 23, 42, 0.45)" stroke="rgba(255, 255, 255, 0.04)"/>
-        <!-- 节点列 -->
-        <text x="14" y="24" font-size="15">🇸🇬</text>
-        <text x="36" y="20" class="font-sans" font-size="12" font-weight="700" fill="#f8fafc">SG.OCI</text>
-        <text x="36" y="33" class="font-mono" font-size="9" fill="#64748b">OCI; SG; NAT</text>
+      <!-- 行 1: SG.OCI -->
+      <g transform="translate(0, 44)">
+        <rect width="740" height="40" rx="4" fill="rgba(15, 23, 42, 0.45)" stroke="rgba(255, 255, 255, 0.04)"/>
+        <text x="12" y="23" font-size="14">🇸🇬</text>
+        <text x="32" y="19" class="font-sans" font-size="11" font-weight="700" fill="#f8fafc">SG.OCI</text>
+        <text x="32" y="32" class="font-mono" font-size="8" fill="#64748b">OCI; SG</text>
 
-        <!-- 单元格状态徽章 -->
-        <g transform="translate(190, 8)">
-          <!-- Netflix: SG (v4) -->
-          <rect x="6" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="26" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
+        <g transform="translate(160, 8)">
+          <rect x="6" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="25" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
 
-          <!-- Disney: V6 SG (v6 only) -->
-          <rect x="65" y="0" width="46" height="24" rx="4" fill="url(#v6BadgeGrad)" stroke="rgba(6, 182, 212, 0.4)"/>
-          <text x="88" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 SG</text>
+          <rect x="66" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="85" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
 
-          <!-- YouTube: V6 SG -->
-          <rect x="129" y="0" width="46" height="24" rx="4" fill="url(#v6BadgeGrad)" stroke="rgba(6, 182, 212, 0.4)"/>
-          <text x="152" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 SG</text>
+          <rect x="123" y="0" width="44" height="24" rx="4" fill="url(#v6BadgeGrad)" stroke="rgba(6, 182, 212, 0.4)"/>
+          <text x="145" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 SG</text>
 
-          <!-- Prime: SG -->
-          <rect x="196" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="216" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
+          <rect x="186" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="205" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
 
-          <!-- ChatGPT: SG -->
-          <rect x="260" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="280" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
+          <rect x="246" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="265" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
 
-          <!-- Claude: SG -->
-          <rect x="324" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="344" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
+          <rect x="309" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="325" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <!-- Gemini: V6 SG -->
-          <rect x="385" y="0" width="46" height="24" rx="4" fill="url(#v6BadgeGrad)" stroke="rgba(6, 182, 212, 0.4)"/>
-          <text x="408" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 SG</text>
+          <rect x="369" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="385" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <!-- Copilot: SG -->
-          <rect x="452" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="472" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
+          <rect x="426" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="445" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
 
-          <!-- Perplexity: SG -->
-          <rect x="516" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="536" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
-
-          <!-- Grok: ❌ -->
-          <rect x="583" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="600" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
-
-          <!-- DeepSeek: ❌ -->
-          <rect x="647" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="664" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
-
-          <!-- 动画疯: - (未测试) -->
-          <rect x="707" y="0" width="34" height="24" rx="4" fill="rgba(148, 163, 184, 0.08)" stroke="rgba(148, 163, 184, 0.2)"/>
-          <text x="724" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#64748b">-</text>
+          <rect x="486" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="505" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
         </g>
       </g>
 
-      <!-- 节点行 2: NYC.MassGrid -->
-      <g transform="translate(0, 94)">
-        <rect width="932" height="42" rx="4" fill="rgba(15, 23, 42, 0.3)" stroke="rgba(255, 255, 255, 0.04)"/>
-        <text x="14" y="24" font-size="15">🇺🇸</text>
-        <text x="36" y="20" class="font-sans" font-size="12" font-weight="700" fill="#f8fafc">NYC.MassGrid</text>
-        <text x="36" y="33" class="font-mono" font-size="9" fill="#64748b">US</text>
+      <!-- 行 2: NYC.MassGrid -->
+      <g transform="translate(0, 90)">
+        <rect width="740" height="40" rx="4" fill="rgba(15, 23, 42, 0.3)" stroke="rgba(255, 255, 255, 0.04)"/>
+        <text x="12" y="23" font-size="14">🇺🇸</text>
+        <text x="32" y="19" class="font-sans" font-size="11" font-weight="700" fill="#f8fafc">NYC.MassGrid</text>
+        <text x="32" y="32" class="font-mono" font-size="8" fill="#64748b">US</text>
 
-        <g transform="translate(190, 8)">
-          <rect x="6" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="26" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
+        <g transform="translate(160, 8)">
+          <rect x="6" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="25" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">US</text>
 
-          <rect x="68" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="88" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
+          <rect x="66" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="85" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">US</text>
 
-          <rect x="132" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="152" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
+          <rect x="126" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="145" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">US</text>
 
-          <rect x="196" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="216" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
+          <rect x="186" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="205" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">US</text>
 
-          <rect x="260" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="280" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
+          <rect x="246" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="265" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">US</text>
 
-          <rect x="324" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="344" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
+          <rect x="306" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="325" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">US</text>
 
-          <rect x="388" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="408" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
+          <rect x="369" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="385" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <rect x="452" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="472" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
+          <rect x="426" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="445" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">US</text>
 
-          <rect x="516" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="536" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
-
-          <rect x="580" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="600" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">US</text>
-
-          <rect x="647" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="664" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
-
-          <rect x="707" y="0" width="34" height="24" rx="4" fill="rgba(148, 163, 184, 0.08)" stroke="rgba(148, 163, 184, 0.2)"/>
-          <text x="724" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#64748b">-</text>
+          <rect x="486" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="505" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">US</text>
         </g>
       </g>
 
-      <!-- 节点行 3: JP.GC | 8th -->
-      <g transform="translate(0, 142)">
-        <rect width="932" height="42" rx="4" fill="rgba(15, 23, 42, 0.45)" stroke="rgba(255, 255, 255, 0.04)"/>
-        <text x="14" y="24" font-size="15">🇯🇵</text>
-        <text x="36" y="20" class="font-sans" font-size="12" font-weight="700" fill="#f8fafc">JP.GC | 8th</text>
-        <text x="36" y="33" class="font-mono" font-size="9" fill="#64748b">JP</text>
+      <!-- 行 3: JP.GC | 8th -->
+      <g transform="translate(0, 136)">
+        <rect width="740" height="40" rx="4" fill="rgba(15, 23, 42, 0.45)" stroke="rgba(255, 255, 255, 0.04)"/>
+        <text x="12" y="23" font-size="14">🇯🇵</text>
+        <text x="32" y="19" class="font-sans" font-size="11" font-weight="700" fill="#f8fafc">JP.GC | 8th</text>
+        <text x="32" y="32" class="font-mono" font-size="8" fill="#64748b">JP</text>
 
-        <g transform="translate(190, 8)">
-          <rect x="6" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="26" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+        <g transform="translate(160, 8)">
+          <rect x="6" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="25" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="68" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="88" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="66" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="85" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="132" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="152" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="126" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="145" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="196" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="216" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="186" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="205" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="260" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="280" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="246" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="265" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="324" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="344" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="306" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="325" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="388" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="408" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="369" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="385" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <rect x="452" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="472" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="426" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="445" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="516" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="536" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
-
-          <rect x="580" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="600" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
-
-          <rect x="647" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="664" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
-
-          <rect x="704" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="724" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">YES</text>
+          <rect x="486" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="505" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
         </g>
       </g>
 
-      <!-- 节点行 4: JP.OCI.ARM -->
-      <g transform="translate(0, 190)">
-        <rect width="932" height="42" rx="4" fill="rgba(15, 23, 42, 0.3)" stroke="rgba(255, 255, 255, 0.04)"/>
-        <text x="14" y="24" font-size="15">🇯🇵</text>
-        <text x="36" y="20" class="font-sans" font-size="12" font-weight="700" fill="#f8fafc">JP.OCI.ARM</text>
-        <text x="36" y="33" class="font-mono" font-size="9" fill="#64748b">JP; OCI</text>
+      <!-- 行 4: JP.OCI.ARM -->
+      <g transform="translate(0, 182)">
+        <rect width="740" height="40" rx="4" fill="rgba(15, 23, 42, 0.3)" stroke="rgba(255, 255, 255, 0.04)"/>
+        <text x="12" y="23" font-size="14">🇯🇵</text>
+        <text x="32" y="19" class="font-sans" font-size="11" font-weight="700" fill="#f8fafc">JP.OCI.ARM</text>
+        <text x="32" y="32" class="font-mono" font-size="8" fill="#64748b">JP; OCI</text>
 
-        <g transform="translate(190, 8)">
-          <rect x="6" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="26" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+        <g transform="translate(160, 8)">
+          <rect x="6" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="25" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="65" y="0" width="46" height="24" rx="4" fill="url(#v6BadgeGrad)" stroke="rgba(6, 182, 212, 0.4)"/>
-          <text x="88" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 JP</text>
+          <rect x="66" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="85" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="129" y="0" width="46" height="24" rx="4" fill="url(#v6BadgeGrad)" stroke="rgba(6, 182, 212, 0.4)"/>
-          <text x="152" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 JP</text>
+          <rect x="123" y="0" width="44" height="24" rx="4" fill="url(#v6BadgeGrad)" stroke="rgba(6, 182, 212, 0.4)"/>
+          <text x="145" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 JP</text>
 
-          <rect x="196" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="216" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="186" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="205" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="260" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="280" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="246" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="265" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="324" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="344" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="309" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="325" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <rect x="385" y="0" width="46" height="24" rx="4" fill="url(#v6BadgeGrad)" stroke="rgba(6, 182, 212, 0.4)"/>
-          <text x="408" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 JP</text>
+          <rect x="369" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="385" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <rect x="452" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="472" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
+          <rect x="426" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="445" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
 
-          <rect x="516" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="536" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">JP</text>
-
-          <rect x="583" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="600" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
-
-          <rect x="647" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="664" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
-
-          <rect x="707" y="0" width="34" height="24" rx="4" fill="rgba(148, 163, 184, 0.08)" stroke="rgba(148, 163, 184, 0.2)"/>
-          <text x="724" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#64748b">-</text>
+          <rect x="486" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="505" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">JP</text>
         </g>
       </g>
 
-      <!-- 节点行 5: HK.ZT | 11th -->
-      <g transform="translate(0, 238)">
-        <rect width="932" height="42" rx="4" fill="rgba(15, 23, 42, 0.45)" stroke="rgba(255, 255, 255, 0.04)"/>
-        <text x="14" y="24" font-size="15">🇭🇰</text>
-        <text x="36" y="20" class="font-sans" font-size="12" font-weight="700" fill="#f8fafc">HK.ZT | 11th</text>
-        <text x="36" y="33" class="font-mono" font-size="9" fill="#64748b">HK</text>
+      <!-- 行 5: HK.ZT | 11th -->
+      <g transform="translate(0, 228)">
+        <rect width="740" height="40" rx="4" fill="rgba(15, 23, 42, 0.45)" stroke="rgba(255, 255, 255, 0.04)"/>
+        <text x="12" y="23" font-size="14">🇭🇰</text>
+        <text x="32" y="19" class="font-sans" font-size="11" font-weight="700" fill="#f8fafc">HK.ZT | 11th</text>
+        <text x="32" y="32" class="font-mono" font-size="8" fill="#64748b">HK</text>
 
-        <g transform="translate(190, 8)">
-          <rect x="6" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="26" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">HK</text>
+        <g transform="translate(160, 8)">
+          <rect x="9" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="25" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <rect x="68" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="88" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">HK</text>
+          <rect x="69" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="85" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <rect x="132" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="152" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">HK</text>
+          <rect x="129" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="145" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <rect x="196" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="216" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">HK</text>
+          <rect x="186" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="205" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">HK</text>
 
-          <rect x="263" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="280" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
+          <rect x="246" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="265" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">HK</text>
 
-          <rect x="327" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="344" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
+          <rect x="309" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="325" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <rect x="391" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="408" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
+          <rect x="369" y="0" width="32" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
+          <text x="385" y="16" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
 
-          <rect x="452" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="472" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">HK</text>
+          <rect x="426" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="445" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">HK</text>
 
-          <rect x="516" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="536" y="16" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">HK</text>
-
-          <rect x="583" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="600" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
-
-          <rect x="647" y="0" width="34" height="24" rx="4" fill="url(#lockedBadgeGrad)" stroke="rgba(239, 68, 68, 0.35)"/>
-          <text x="664" y="16" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
-
-          <rect x="704" y="0" width="40" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
-          <text x="724" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">YES</text>
+          <rect x="486" y="0" width="38" height="24" rx="4" fill="url(#v4BadgeGrad)" stroke="rgba(16, 185, 129, 0.4)"/>
+          <text x="505" y="16" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">HK</text>
         </g>
       </g>
     </g>
   </g>
 
   <!-- ========================================================================= -->
-  <!-- 核心主视觉 2：前台悬浮小组件 (微仰视右倾立体重叠在右下角) -->
+  <!-- 中右侧主视觉 2：前台悬浮小组件 (微仰视右倾立体重叠在右下角) -->
   <!-- ========================================================================= -->
-  <g transform="translate(1040, 200) rotate(1.4) skewY(-0.8)" filter="url(#cardShadow)">
-    <!-- 卡片外框 (480 x 620) -->
-    <rect width="480" height="620" rx="20" fill="#0f172a" stroke="rgba(255, 255, 255, 0.18)" stroke-width="1.5"/>
+  <g transform="translate(1080, 180) rotate(1.2) skewY(-0.8)" filter="url(#cardShadow)">
+    <!-- 卡片外框 (440 x 590) -->
+    <rect width="440" height="590" rx="18" fill="#0f172a" stroke="rgba(255, 255, 255, 0.18)" stroke-width="1.5"/>
 
     <!-- 浮层 Header -->
-    <g transform="translate(20, 18)">
-      <rect width="440" height="46" rx="10" fill="rgba(30, 41, 59, 0.6)" stroke="rgba(255, 255, 255, 0.08)"/>
-      <text x="16" y="29" font-size="16" fill="#94a3b8">⠿</text>
-      <text x="38" y="28" class="font-sans" font-size="14" font-weight="700" fill="#ffffff">流媒体与 AI 解锁检测</text>
+    <g transform="translate(18, 16)">
+      <rect width="404" height="44" rx="9" fill="rgba(30, 41, 59, 0.6)" stroke="rgba(255, 255, 255, 0.08)"/>
+      <text x="14" y="27" font-size="15" fill="#94a3b8">⠿</text>
+      <text x="36" y="27" class="font-sans" font-size="13" font-weight="700" fill="#ffffff">流媒体与 AI 解锁检测</text>
 
       <!-- 操作按钮群 -->
-      <g transform="translate(240, 9)">
-        <!-- ⚡ 探测 -->
-        <rect x="0" y="0" width="56" height="28" rx="6" fill="rgba(6, 182, 212, 0.2)" stroke="rgba(6, 182, 212, 0.5)"/>
-        <text x="28" y="18" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#67e8f9">⚡ 探测</text>
+      <g transform="translate(210, 8)">
+        <rect x="0" y="0" width="52" height="28" rx="6" fill="rgba(6, 182, 212, 0.2)" stroke="rgba(6, 182, 212, 0.5)"/>
+        <text x="26" y="18" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#67e8f9">⚡ 探测</text>
 
-        <!-- 📊 大表 -->
-        <rect x="62" y="0" width="60" height="28" rx="6" fill="rgba(99, 102, 241, 0.25)" stroke="rgba(99, 102, 241, 0.55)"/>
-        <text x="92" y="18" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#a5b4fc">📊 大表</text>
+        <rect x="58" y="0" width="58" height="28" rx="6" fill="rgba(99, 102, 241, 0.25)" stroke="rgba(99, 102, 241, 0.55)"/>
+        <text x="87" y="18" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#a5b4fc">📊 大表</text>
 
-        <!-- 中/EN -->
-        <rect x="128" y="0" width="42" height="28" rx="6" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.1)"/>
-        <text x="149" y="18" text-anchor="middle" class="font-sans" font-size="10" fill="#94a3b8">中/EN</text>
+        <rect x="122" y="0" width="42" height="28" rx="6" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.1)"/>
+        <text x="143" y="18" text-anchor="middle" class="font-sans" font-size="10" fill="#94a3b8">中/EN</text>
 
-        <!-- — 最小化 -->
-        <rect x="176" y="0" width="24" height="28" rx="6" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.1)"/>
-        <text x="188" y="18" text-anchor="middle" class="font-sans" font-size="12" fill="#94a3b8">—</text>
+        <rect x="170" y="0" width="24" height="28" rx="6" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.1)"/>
+        <text x="182" y="18" text-anchor="middle" class="font-sans" font-size="12" fill="#94a3b8">—</text>
       </g>
     </g>
 
     <!-- 节点下拉选择框 -->
-    <g transform="translate(20, 76)">
-      <rect width="440" height="42" rx="8" fill="#1e293b" stroke="rgba(6, 182, 212, 0.4)" stroke-width="1.2"/>
-      <text x="14" y="26" font-size="16">🇸🇬</text>
-      <text x="40" y="26" class="font-sans" font-size="13" font-weight="700" fill="#ffffff">SG.OCI</text>
-      <text x="100" y="26" class="font-mono" font-size="11" fill="#94a3b8">(OCI; SG; NAT)</text>
-      <text x="418" y="26" text-anchor="end" class="font-sans" font-size="12" fill="#67e8f9">▼</text>
+    <g transform="translate(18, 72)">
+      <rect width="404" height="40" rx="8" fill="#1e293b" stroke="rgba(6, 182, 212, 0.4)" stroke-width="1.2"/>
+      <text x="14" y="25" font-size="15">🇸🇬</text>
+      <text x="38" y="25" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">SG.OCI</text>
+      <text x="94" y="25" class="font-mono" font-size="10" fill="#94a3b8">(OCI; SG; NAT)</text>
+      <text x="386" y="25" text-anchor="end" class="font-sans" font-size="11" fill="#67e8f9">▼</text>
     </g>
 
     <!-- 状态指示条 -->
-    <g transform="translate(20, 130)">
-      <rect width="440" height="28" rx="6" fill="rgba(15, 23, 42, 0.6)"/>
-      <circle cx="16" cy="14" r="3.5" fill="#34d399"/>
-      <text x="26" y="18" class="font-sans" font-size="11" fill="#94a3b8">已检测 33 项服务 · 解锁率 <tspan fill="#34d399" font-weight="700">84.8% (28/33)</tspan></text>
-      <text x="426" y="18" text-anchor="end" class="font-mono" font-size="11" fill="#64748b">4.7s</text>
+    <g transform="translate(18, 124)">
+      <rect width="404" height="26" rx="6" fill="rgba(15, 23, 42, 0.6)"/>
+      <circle cx="14" cy="13" r="3.5" fill="#34d399"/>
+      <text x="24" y="17" class="font-sans" font-size="10.5" fill="#94a3b8">已检测 33 项服务 · 解锁率 <tspan fill="#34d399" font-weight="700">84.8% (28/33)</tspan></text>
+      <text x="390" y="17" text-anchor="end" class="font-mono" font-size="10.5" fill="#64748b">4.7s</text>
     </g>
 
     <!-- 解锁卡片 3x3 矩阵网格 -->
-    <g transform="translate(20, 172)">
+    <g transform="translate(18, 162)">
       <!-- Card 1: Netflix (SG) -->
       <g transform="translate(0, 0)">
-        <rect width="138" height="116" rx="10" fill="rgba(30, 41, 59, 0.7)" stroke="#10b981" stroke-width="1.8"/>
-        <!-- Netflix N 图标 -->
-        <rect x="49" y="16" width="40" height="40" rx="8" fill="#e50914"/>
-        <text x="69" y="44" text-anchor="middle" class="font-sans" font-size="24" font-weight="900" fill="#ffffff">N</text>
-        <text x="69" y="76" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">Netflix</text>
-        <rect x="44" y="86" width="50" height="20" rx="4" fill="rgba(16, 185, 129, 0.25)"/>
-        <text x="69" y="100" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
+        <rect width="126" height="110" rx="9" fill="rgba(30, 41, 59, 0.7)" stroke="#10b981" stroke-width="1.6"/>
+        <rect x="45" y="14" width="36" height="36" rx="7" fill="#e50914"/>
+        <text x="63" y="39" text-anchor="middle" class="font-sans" font-size="22" font-weight="900" fill="#ffffff">N</text>
+        <text x="63" y="70" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">Netflix</text>
+        <rect x="40" y="80" width="46" height="18" rx="4" fill="rgba(16, 185, 129, 0.25)"/>
+        <text x="63" y="93" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
       </g>
 
       <!-- Card 2: Disney+ (V6 SG) -->
-      <g transform="translate(151, 0)">
-        <rect width="138" height="116" rx="10" fill="rgba(30, 41, 59, 0.7)" stroke="#06b6d4" stroke-width="1.8"/>
-        <!-- Disney+ 图标 -->
-        <rect x="49" y="16" width="40" height="40" rx="8" fill="#113ccf"/>
-        <text x="69" y="42" text-anchor="middle" class="font-sans" font-size="16" font-weight="900" fill="#ffffff">D+</text>
-        <text x="69" y="76" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">Disney+</text>
-        <rect x="36" y="86" width="66" height="20" rx="4" fill="rgba(6, 182, 212, 0.25)"/>
-        <text x="69" y="100" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 SG</text>
+      <g transform="translate(139, 0)">
+        <rect width="126" height="110" rx="9" fill="rgba(30, 41, 59, 0.7)" stroke="#06b6d4" stroke-width="1.6"/>
+        <rect x="45" y="14" width="36" height="36" rx="7" fill="#113ccf"/>
+        <text x="63" y="38" text-anchor="middle" class="font-sans" font-size="15" font-weight="900" fill="#ffffff">D+</text>
+        <text x="63" y="70" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">Disney+</text>
+        <rect x="33" y="80" width="60" height="18" rx="4" fill="rgba(6, 182, 212, 0.25)"/>
+        <text x="63" y="93" text-anchor="middle" class="font-mono" font-size="9.5" font-weight="700" fill="#67e8f9">V6 SG</text>
       </g>
 
       <!-- Card 3: YouTube (V6 SG) -->
-      <g transform="translate(302, 0)">
-        <rect width="138" height="116" rx="10" fill="rgba(30, 41, 59, 0.7)" stroke="#06b6d4" stroke-width="1.8"/>
-        <!-- YouTube 图标 -->
-        <rect x="49" y="16" width="40" height="40" rx="8" fill="#ff0000"/>
-        <polygon points="65,30 78,36 65,42" fill="#ffffff"/>
-        <text x="69" y="76" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">YouTube</text>
-        <rect x="36" y="86" width="66" height="20" rx="4" fill="rgba(6, 182, 212, 0.25)"/>
-        <text x="69" y="100" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 SG</text>
+      <g transform="translate(278, 0)">
+        <rect width="126" height="110" rx="9" fill="rgba(30, 41, 59, 0.7)" stroke="#06b6d4" stroke-width="1.6"/>
+        <rect x="45" y="14" width="36" height="36" rx="7" fill="#ff0000"/>
+        <polygon points="60,26 71,32 60,38" fill="#ffffff"/>
+        <text x="63" y="70" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">YouTube</text>
+        <rect x="33" y="80" width="60" height="18" rx="4" fill="rgba(6, 182, 212, 0.25)"/>
+        <text x="63" y="93" text-anchor="middle" class="font-mono" font-size="9.5" font-weight="700" fill="#67e8f9">V6 SG</text>
       </g>
 
       <!-- Card 4: Prime Video (SG) -->
-      <g transform="translate(0, 126)">
-        <rect width="138" height="116" rx="10" fill="rgba(30, 41, 59, 0.7)" stroke="#10b981" stroke-width="1.8"/>
-        <rect x="49" y="16" width="40" height="40" rx="8" fill="#00a8e1"/>
-        <text x="69" y="42" text-anchor="middle" class="font-sans" font-size="16" font-weight="900" fill="#ffffff">prime</text>
-        <text x="69" y="76" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">Prime Video</text>
-        <rect x="44" y="86" width="50" height="20" rx="4" fill="rgba(16, 185, 129, 0.25)"/>
-        <text x="69" y="100" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
+      <g transform="translate(0, 120)">
+        <rect width="126" height="110" rx="9" fill="rgba(30, 41, 59, 0.7)" stroke="#10b981" stroke-width="1.6"/>
+        <rect x="45" y="14" width="36" height="36" rx="7" fill="#00a8e1"/>
+        <text x="63" y="38" text-anchor="middle" class="font-sans" font-size="15" font-weight="900" fill="#ffffff">prime</text>
+        <text x="63" y="70" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">Prime Video</text>
+        <rect x="40" y="80" width="46" height="18" rx="4" fill="rgba(16, 185, 129, 0.25)"/>
+        <text x="63" y="93" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
       </g>
 
       <!-- Card 5: ChatGPT (SG) -->
-      <g transform="translate(151, 126)">
-        <rect width="138" height="116" rx="10" fill="rgba(30, 41, 59, 0.7)" stroke="#10b981" stroke-width="1.8"/>
-        <rect x="49" y="16" width="40" height="40" rx="8" fill="#10a37f"/>
-        <circle cx="69" cy="36" r="11" fill="none" stroke="#ffffff" stroke-width="2.5"/>
-        <text x="69" y="76" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">ChatGPT</text>
-        <rect x="44" y="86" width="50" height="20" rx="4" fill="rgba(16, 185, 129, 0.25)"/>
-        <text x="69" y="100" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
+      <g transform="translate(139, 120)">
+        <rect width="126" height="110" rx="9" fill="rgba(30, 41, 59, 0.7)" stroke="#10b981" stroke-width="1.6"/>
+        <rect x="45" y="14" width="36" height="36" rx="7" fill="#10a37f"/>
+        <circle cx="63" cy="32" r="10" fill="none" stroke="#ffffff" stroke-width="2.2"/>
+        <text x="63" y="70" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">ChatGPT</text>
+        <rect x="40" y="80" width="46" height="18" rx="4" fill="rgba(16, 185, 129, 0.25)"/>
+        <text x="63" y="93" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
       </g>
 
       <!-- Card 6: Claude (SG) -->
-      <g transform="translate(302, 126)">
-        <rect width="138" height="116" rx="10" fill="rgba(30, 41, 59, 0.7)" stroke="#10b981" stroke-width="1.8"/>
-        <rect x="49" y="16" width="40" height="40" rx="8" fill="#d97706"/>
-        <text x="69" y="44" text-anchor="middle" class="font-sans" font-size="22" font-weight="900" fill="#ffffff">C</text>
-        <text x="69" y="76" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">Claude</text>
-        <rect x="44" y="86" width="50" height="20" rx="4" fill="rgba(16, 185, 129, 0.25)"/>
-        <text x="69" y="100" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#34d399">SG</text>
+      <g transform="translate(278, 120)">
+        <rect width="126" height="110" rx="9" fill="rgba(30, 41, 59, 0.7)" stroke="#10b981" stroke-width="1.6"/>
+        <rect x="45" y="14" width="36" height="36" rx="7" fill="#d97706"/>
+        <text x="63" y="40" text-anchor="middle" class="font-sans" font-size="20" font-weight="900" fill="#ffffff">C</text>
+        <text x="63" y="70" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">Claude</text>
+        <rect x="40" y="80" width="46" height="18" rx="4" fill="rgba(16, 185, 129, 0.25)"/>
+        <text x="63" y="93" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#34d399">SG</text>
       </g>
 
       <!-- Card 7: Gemini (V6 SG) -->
-      <g transform="translate(0, 252)">
-        <rect width="138" height="116" rx="10" fill="rgba(30, 41, 59, 0.7)" stroke="#06b6d4" stroke-width="1.8"/>
-        <rect x="49" y="16" width="40" height="40" rx="8" fill="#4f46e5"/>
-        <polygon points="69,24 74,36 86,41 74,46 69,58 64,46 52,41 64,36" fill="#ffffff"/>
-        <text x="69" y="76" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">Gemini</text>
-        <rect x="36" y="86" width="66" height="20" rx="4" fill="rgba(6, 182, 212, 0.25)"/>
-        <text x="69" y="100" text-anchor="middle" class="font-mono" font-size="10" font-weight="700" fill="#67e8f9">V6 SG</text>
+      <g transform="translate(0, 240)">
+        <rect width="126" height="110" rx="9" fill="rgba(30, 41, 59, 0.7)" stroke="#06b6d4" stroke-width="1.6"/>
+        <rect x="45" y="14" width="36" height="36" rx="7" fill="#4f46e5"/>
+        <polygon points="63,22 67,32 77,36 67,40 63,50 59,40 49,36 59,32" fill="#ffffff"/>
+        <text x="63" y="70" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">Gemini</text>
+        <rect x="33" y="80" width="60" height="18" rx="4" fill="rgba(6, 182, 212, 0.25)"/>
+        <text x="63" y="93" text-anchor="middle" class="font-mono" font-size="9.5" font-weight="700" fill="#67e8f9">V6 SG</text>
       </g>
 
       <!-- Card 8: Spotify (❌) -->
-      <g transform="translate(151, 252)">
-        <rect width="138" height="116" rx="10" fill="rgba(30, 41, 59, 0.7)" stroke="#ef4444" stroke-width="1.8"/>
-        <rect x="49" y="16" width="40" height="40" rx="8" fill="#1db954"/>
-        <path d="M60 30 Q69 34 78 30 M62 36 Q69 39 76 36 M64 42 Q69 44 74 42" stroke="#ffffff" stroke-width="2.5" fill="none"/>
-        <text x="69" y="76" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">Spotify</text>
-        <rect x="47" y="86" width="44" height="20" rx="4" fill="rgba(239, 68, 68, 0.25)"/>
-        <text x="69" y="100" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
+      <g transform="translate(139, 240)">
+        <rect width="126" height="110" rx="9" fill="rgba(30, 41, 59, 0.7)" stroke="#ef4444" stroke-width="1.6"/>
+        <rect x="45" y="14" width="36" height="36" rx="7" fill="#1db954"/>
+        <path d="M55 27 Q63 31 71 27 M57 32 Q63 35 69 32 M59 37 Q63 39 67 37" stroke="#ffffff" stroke-width="2.2" fill="none"/>
+        <text x="63" y="70" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">Spotify</text>
+        <rect x="43" y="80" width="40" height="18" rx="4" fill="rgba(239, 68, 68, 0.25)"/>
+        <text x="63" y="93" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
       </g>
 
-      <!-- Card 9: Grok (❌) -->
-      <g transform="translate(302, 252)">
-        <rect width="138" height="116" rx="10" fill="rgba(30, 41, 59, 0.7)" stroke="#ef4444" stroke-width="1.8"/>
-        <rect x="49" y="16" width="40" height="40" rx="8" fill="#000000" stroke="rgba(255, 255, 255, 0.2)"/>
-        <text x="69" y="43" text-anchor="middle" class="font-sans" font-size="18" font-weight="900" fill="#ffffff">𝕏</text>
-        <text x="69" y="76" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">xAI Grok</text>
-        <rect x="47" y="86" width="44" height="20" rx="4" fill="rgba(239, 68, 68, 0.25)"/>
-        <text x="69" y="100" text-anchor="middle" class="font-mono" font-size="11" fill="#f87171">❌</text>
+      <!-- Card 9: xAI Grok (❌) -->
+      <g transform="translate(278, 240)">
+        <rect width="126" height="110" rx="9" fill="rgba(30, 41, 59, 0.7)" stroke="#ef4444" stroke-width="1.6"/>
+        <rect x="45" y="14" width="36" height="36" rx="7" fill="#000000" stroke="rgba(255, 255, 255, 0.2)"/>
+        <text x="63" y="39" text-anchor="middle" class="font-sans" font-size="16" font-weight="900" fill="#ffffff">𝕏</text>
+        <text x="63" y="70" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">xAI Grok</text>
+        <rect x="43" y="80" width="40" height="18" rx="4" fill="rgba(239, 68, 68, 0.25)"/>
+        <text x="63" y="93" text-anchor="middle" class="font-mono" font-size="10" fill="#f87171">❌</text>
       </g>
     </g>
 
     <!-- 浮层 Footer -->
-    <g transform="translate(20, 560)">
-      <rect width="440" height="38" rx="8" fill="rgba(15, 23, 42, 0.5)"/>
-      <text x="14" y="24" class="font-sans" font-size="11" fill="#64748b">📡 纯 Native 模式探测 · 自适应 OOM 熔断保护</text>
-      <text x="426" y="24" text-anchor="end" class="font-sans mono" font-size="11" font-weight="600" fill="#38bdf8">0,11 区域生效中</text>
+    <g transform="translate(18, 534)">
+      <rect width="404" height="36" rx="7" fill="rgba(15, 23, 42, 0.5)"/>
+      <text x="14" y="23" class="font-sans" font-size="10.5" fill="#64748b">📡 纯 Native 模式探测 · 自适应 OOM 熔断保护</text>
+      <text x="390" y="23" text-anchor="end" class="font-sans mono" font-size="10.5" font-weight="600" fill="#38bdf8">0,11 区域生效中</text>
     </g>
   </g>
 
   <!-- ========================================================================= -->
   <!-- 核心主视觉 3：右下角常驻 48px 几何正方形悬浮微图标 (带雷达波纹与光效) -->
   <!-- ========================================================================= -->
-  <g transform="translate(1480, 780)">
-    <!-- 扩散雷达波外圈 -->
-    <circle cx="24" cy="24" r="38" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-opacity="0.3" stroke-dasharray="4 3"/>
-    <circle cx="24" cy="24" r="30" fill="none" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.5"/>
+  <g transform="translate(1485, 785)">
+    <circle cx="24" cy="24" r="36" fill="none" stroke="#06b6d4" stroke-width="1.4" stroke-opacity="0.3" stroke-dasharray="4 3"/>
+    <circle cx="24" cy="24" r="29" fill="none" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.5"/>
 
-    <!-- 48px 正方形按钮主体 -->
     <rect width="48" height="48" rx="12" fill="#090d16" stroke="#06b6d4" stroke-width="2" filter="url(#btnGlow)"/>
 
-    <!-- 图标内容：流媒体雷达/地球仪微图标 -->
     <g transform="translate(12, 12)">
       <circle cx="12" cy="12" r="10" fill="none" stroke="#38bdf8" stroke-width="1.8"/>
       <ellipse cx="12" cy="12" rx="4.5" ry="10" fill="none" stroke="#38bdf8" stroke-width="1.4"/>
       <line x1="2" y1="12" x2="22" y2="12" stroke="#38bdf8" stroke-width="1.4"/>
-      <!-- 解锁指示绿点 -->
       <circle cx="18" cy="6" r="3" fill="#34d399"/>
     </g>
-  </g>
-
-  <!-- 底部微标与版本标签 -->
-  <g transform="translate(80, 840)">
-    <text x="0" y="20" class="font-sans" font-size="14" font-weight="700" fill="#94a3b8">Komari Plugin: <tspan fill="#f8fafc">Media &amp; AI Unlock Test</tspan></text>
-    <text x="340" y="20" class="font-mono" font-size="12" fill="#64748b">v0.1.0 · Powered by MediaUnlockTest</text>
   </g>
 </svg>
