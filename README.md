@@ -1,74 +1,103 @@
-# Komari Plugin: Media & AI Unlock Test (`unlock-test`)
+# Komari 插件：UnlockTest (流媒体与 AI 解锁检测)
 
-![Media & AI Unlock Test Preview](https://raw.githubusercontent.com/livingfree2023/Komari-Plugin-UnlockTest/main/assets/preview.svg)
+> 面向 [Komari 监控面板](https://github.com/komari-monitor) 的 VPS 节点流媒体与主流 AI 平台全景解锁检测与可视化插件。
 
-基于 [HsukqiLee/MediaUnlockTest](https://github.com/HsukqiLee/MediaUnlockTest) 的 Komari 流媒体与 AI 解锁检测插件。通过 `server.injectHTML` 在 Komari 首页注入可拖动浮层展示各服务 Logo、可解锁绿框 / 未解锁红框及底部区域缩写，并提供原生 `configuration` 托管配置面板勾选检测区域（`-region`）。
+![UnlockTest Dashboard Preview](https://raw.githubusercontent.com/livingfree2023/Komari-Plugin-UnlockTest/main/assets/preview.svg)
 
-## 核心特性
+> **TL;DR**：一键检测并可视化全节点流媒体与主流 AI 平台的解锁状态（Netflix、Disney+、YouTube、ChatGPT、Claude、Gemini 等）。提供后台全景「解锁矩阵」双向冻结大表与前台优雅悬浮小组件，支持 IPv4/IPv6 双栈区分、多区域自适应、自由拖拽与单节点自动聚焦。
 
-1. **按区域勾选配置（默认勾选 `0` 跨国平台与 `11` AI 平台）**：
-   - 采用 Komari 原生 `configuration`（`managed`）托管表单，覆盖 `MediaUnlockTest` 的全部 12 个区域开关（`0: Globe`、`1: Taiwan`、`2: HongKong`、`3: Japan`、`4: Korea`、`5: NorthAmerica`、`6: SouthAmerica`、`7: Europe`、`8: Africa`、`9: SouthEastAsia`、`10: Oceania`、`11: AI`）。
-   - 支持配置连接模式 `-m`（`0` 自动双栈、`4` 仅 IPv4、`6` 仅 IPv6）、最大并发数 `-conc`、定时 Cron 表达式与指定探测节点。
-2. **读写彻底分离（Read/Write Separation）**：
-   - **后台写路径**：通过 `server.cron` 或管理员触发，经 `server.call("admin:exec")` 向在线 VPS 下发非交互式 `unlock-test` 命令（若节点未安装则自动拉取对应架构二进制），轮询 `admin:getTaskById` 解析真实输出后持久化至 `__storageDir__/snapshot.json`。
-   - **前台读路径**：`GET /api/plugin/unlock-test/snapshot` 直接读取预热内存/磁盘快照，毫秒级响应，零外部请求阻塞。
-3. **首页可拖动浮层与节点下拉同步（`PageNodeSync`）**：
-   - **分组/搜索筛选同步**：当用户在 Komari 首页切换分组或搜索筛选（如 10 个节点仅显示 3 个）时，浮层下拉菜单实时收敛为仅包含当前页面可见的节点。
-   - **单节点详情页自动锁定**：当用户点开单个 VPS 详情页（如 `/instance/<uuid>`）时，浮层下拉菜单自动选中当前节点。
-   - **双栈视图切换与本地备份**：支持 `ALL / IPv4 / IPv6` 切换、自由拖拽定位（`localStorage` 持久化）、JSON 配置一键导出/导入恢复、中英双语切换（`zh-CN` / `en`）与 About 归属弹窗。
+[![Release](https://img.shields.io/github/v/release/livingfree2023/Komari-Plugin-UnlockTest?color=06b6d4&label=Release)](https://github.com/livingfree2023/Komari-Plugin-UnlockTest/releases)
+[![License](https://img.shields.io/badge/License-MIT-10b981.svg)](https://github.com/livingfree2023/Komari-Plugin-UnlockTest/blob/main/LICENSE)
+![Komari Compatibility](https://img.shields.io/badge/Komari%20Plugin-v1.0.5%2B-38bdf8.svg)
 
-## 目录结构
+---
 
+## 🌟 核心功能亮点
+
+- 📊 **全景后台「解锁矩阵」大表**：
+  - **双向冻结窗格**：节点列与服务表头智能双向锁固，纵横滑动时标题始终固定对齐，百台机器也能自如浏览。
+  - **动态自适应服务目录**：完全根据后台开启的检测区域智能重构表格列，无冗余空列，清爽整洁。
+  - **双栈状态全景透视**：绿色高亮标注解锁区域缩写（如 `SG`、`US`、`HK`），IPv6 专有解锁自动显示 `V6` 标志，未解锁红标警示，网络状态一目了然。
+  - **即时搜索与分类筛选**：支持按节点名称和分组快速检索，并提供「全部」、「跨国平台」、「AI 矩阵」、「各区域专区」一键切换。
+- ⚡ **原生指令调度与智能并发保护**：
+  - **官方 Agent 原生下发**：无需在节点额外安装任何常驻后台服务，直接经由 Komari 官方 Agent 通道安全下发执行。
+  - **低配小鸡深度保护**：内置自适应并发控制与安全熔断机制，单核 512MB / 1GB NAT 小内存机器平稳运行，杜绝内存溢出。
+  - **任务自动追踪与幂等管理**：同一时间保护单一检测任务，后台自动检测并回收结果，杜绝重复并发争抢。
+- 🎯 **灵活定向探测与自动化巡检**：
+  - **定向一键复检**：大表支持「⚡ 探测当前显示节点」，可配合搜索筛选框仅针对指定节点或分组即时发起并发检测，省时省流量。
+  - **定时巡检 Cron 自由配置**：支持自定义定时巡检周期（默认每 6 小时自动巡检一次），全天候掌握节点解锁变动情况。
+  - **配置保存自动补齐**：后台更新区域配置或新增节点时，自动在后台对无快照的在线节点发起补充检测。
+- 🪟 **前台自适应悬浮小组件 (可自由拖拽)**：
+  - **轻量微交互**：前台右下角常驻 48×48 极简科技感图标，点击平滑居中展开精美的流媒体与 AI 解锁卡片。
+  - **自由拖拽与位置记忆**：支持触控与鼠标平滑拖拽停靠，松手后自动记忆摆放位置（本地持久化），页面刷新不跑偏。
+  - **单节点详情自动聚焦**：访问实例详情页（`/instance/:uuid`）时，浮窗自动聚焦展示当前节点指标；首页则支持下拉菜单随心切换。
+  - **双栈模式一键过滤**：面板提供 `ALL / IPv4 / IPv6` 单独筛选，搭配高清服务矢量 Logo 与解锁状态光圈，直观悦目。
+  - **后台自动免打扰**：进入后台管理、解锁矩阵或终端页面时自动静默隐藏，严格仅在前台页面展示。
+- 🌍 **12 大区域及主流平台全覆盖**：
+  - **跨国平台 (Globe)**：Netflix, Disney+, YouTube Premium, TikTok, Spotify, Amazon Prime Video, Apple, Steam, Bilibili, Reddit, X 等。
+  - **AI 矩阵平台 (AI)**：OpenAI ChatGPT, Anthropic Claude, Google Gemini, Microsoft Copilot, Perplexity AI, x.AI Grok, DeepSeek, Quora Poe, Mistral AI 等。
+  - **区域特色流媒体**：全面覆盖台湾、香港、日本、韩国、北美、南美、欧洲、非洲、东南亚、大洋洲等本地特色流媒体，后台自由开关。
+- 💨 **秒级开箱与零阻塞加载**：
+  - 前台全部采用本地预热快照呈现，打开页面 0 毫秒瞬间加载，彻底杜绝前端卡顿与等待。
+
+---
+
+## 🚀 快速安装与使用
+
+### 方式一：通过专属插件源订阅安装（推荐 · 实时获取最新版）
+
+在 Komari 插件市场设置中添加本仓库专属的自定义插件源订阅地址（直连 GitHub `main` 分支，穿透 CDN 缓存，确保第一时间获取最新版本）：
 ```text
-.
-├── PLAN.md                     # 生产级开发计划与架构设计文档
-├── build.sh                    # 插件 ZIP 打包脚本 (输出至 dist/unlock-test.zip)
-├── prototype/
-│   └── index.html              # Phase 1 交互式静态原型
-└── plugin/                     # Komari 插件源码根目录
-    ├── komari-plugin.json      # 插件清单与 managed configuration 定义
-    ├── script.js               # 插件入口 (路由、RPC、Cron、HTML 注入)
-    ├── lib/
-    │   ├── parser.js           # MediaUnlockTest CLI ANSI 输出解析器
-    │   └── probe.js            # 后台探测调度与 __storageDir__/snapshot.json 管理
-    └── assets/
-        ├── logos.js            # 流媒体与 AI 平台矢量 SVG 图标库
-        ├── widget.css          # 高对比度终端风浮层样式 (正文 >= 16px)
-        └── widget.js           # 可拖动浮层与 PageNodeSync 页面节点同步引擎
+https://raw.githubusercontent.com/livingfree2023/Komari-Plugin-UnlockTest/refs/heads/main/v1.json
 ```
 
-## 构建与安装
+### 方式二：通过 Komari 官方插件市场安装（每 6 小时同步一次）
 
+1. 登录您的 Komari 管理后台。
+2. 导航至左侧 **插件市场 (Plugin Market)**。
+3. 在搜索框中输入 **`UnlockTest`** 或 **`流媒体与 AI 解锁`**。
+4. 找到插件后点击 **安装 (Install)**，系统将自动从官方市场目录拉取最新版本。
+5. 安装完成后在「插件管理」中点击 **启用**，左侧菜单即会出现 **解锁矩阵** 仪表盘入口。
+
+### 方式三：从 GitHub Releases 手动上传安装
+
+1. 前往本仓库 [Releases 页面](https://github.com/livingfree2023/Komari-Plugin-UnlockTest/releases) 下载最新版本的 **`unlock-test.zip`**。
+2. 登录您的 Komari 管理后台，进入 **插件管理 (Plugins)**。
+3. 点击右上角 **上传插件**，选择下载好的 `unlock-test.zip`。
+4. 上传完成后点击启用即可。
+
+---
+
+## ⚙️ 常用配置说明
+
+在 Komari 管理后台「插件管理」找到本插件，点击「配置」即可轻松调整：
+
+* **检测区域选择**：按需勾选希望测试的区域（默认已开启「跨国平台」与「AI 平台」）。
+* **连接模式 (`-m`)**：支持 `0 = 自动双栈 (IPv4 + IPv6)`、`4 = 仅测试 IPv4`、`6 = 仅测试 IPv6`。
+* **最大并发数 (`-conc`)**：建议保持默认 20~30，兼顾探测效率与低配 VPS 运行平稳度。
+* **定时巡检 Cron**：后台自动执行检测的 Cron 表达式，默认为每 6 小时执行一次 (`0 */6 * * *`)。
+* **限定探测节点**：留空表示自动探测全部在线节点，亦可手动勾选指定部分关键节点。
+
+---
+
+## 🛠️ 自行构建
+
+如需对源码进行二次开发并手动打包：
 ```bash
 chmod +x build.sh
 ./build.sh
 ```
+打包脚本将自动递增末位版本号，并于 `dist/` 目录下生成 `unlock-test.zip`，同时自动同步最新 SHA-256 校验码至 `v1.json`。
 
-构建完成后，将生成的 `dist/unlock-test.zip` 在 Komari 管理后台「插件管理」中上传并启用（批准所需权限：`allowRoutes`、`allowSystemRPC`、`allowHTMLInject`）。
+---
 
-## 任务恢复与诊断
+## 📄 开源许可证
 
-- 同一时间只运行一个探测任务；重复点击会返回当前任务，不会取消旧任务的结果轮询。
-- 插件重载后继续查询已保存的任务，包括日志补取任务，不重新执行检测程序。
-- 每次探测在节点建立独立的 `/tmp/km-unlock-<runId>/`，保存 `result.log` 和真实退出状态 `exit`。旧版本的 `/tmp/km-unlock-result.log` 不用于自动补取，以免误读旧结果。
-- 正常结果通过 Komari Agent 的任务上报接收。等待 5 分钟仍缺少结果时，插件仅对缺失节点下发一次日志读取命令，再等待最多 1 分钟。若仍收不到，记录节点失败并提示检查 Agent 日志里的 `Failed to upload task result`。补取仍依赖 Agent 的上报链路，不能绕过持续的网络或认证故障。
-- 节点具备 `timeout` 命令时，检测进程限制为 240 秒，超限后先终止、再强制结束；未提供该命令的系统仍受插件侧等待期限约束，但不保证远程进程已退出。
-- 本次失败保留该节点上次结果，并标记更新失败；空结果、查询错误、HTTP 错误不会伪装成首次探测等待。
-- 按配置注册 Cron。手动探测与 `/debug` 仅接受 Komari 已验证的管理员身份，不能仅凭 Bearer 请求头获得权限。
-- 仅支持具备 POSIX Shell 的节点；Windows Agent 使用 PowerShell，当前插件未实现其命令适配。日志目录保留供排障，可在不再需要时由管理员清理。临时下载的检测二进制在执行结束后移除。
+本项目基于 [MIT License](https://github.com/livingfree2023/Komari-Plugin-UnlockTest/blob/main/LICENSE) 协议开源。
 
-## 本地验证
+---
 
-```bash
-node --test tests/probe.test.js
-```
+## 💖 致谢
 
-回归测试使用隔离的 RPC/时钟替身，不访问线上节点。检测输出样本取自实际 SGOCI 输出，IP 已替换为文档地址。覆盖输出解析、任务恢复、重复触发、部分/缺失结果、一次性日志补取、权限与前端错误展示；Shell 测试按 Agent 的 `sh -s` 执行方式验证输出和退出码。
-
-安装新包并刷新首页后，旧版本未完成任务会被重新查询；若旧任务无法回收，将显示失败。此时可手动发起一次新的探测，新任务才具备独立日志补取能力。
-
-## 作者与致谢
-
-- **解锁检测引擎**：[HsukqiLee/MediaUnlockTest](https://github.com/HsukqiLee/MediaUnlockTest)
-- **插件开发准则与规范**：[Komari 插件开发文档](https://komari-document.pages.dev/dev/plugin/)
-- **Author**：`livingfree2023@outlook.com`
+* [HsukqiLee/MediaUnlockTest](https://github.com/HsukqiLee/MediaUnlockTest) —— 提供强大的底层流媒体与 AI 解锁探测核心引擎。
+* [Komari 监控面板](https://github.com/komari-monitor) —— 现代、优雅的服务器探针与监控生态系统。
