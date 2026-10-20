@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>解锁矩阵</title>
+  <style>
+    :root {
+      --bg-base: #090d16;
+      --bg-surface: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-hover: #273549;
+      --border-subtle: #1e293b;
+      --border-muted: #334155;
+      --border-highlight: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --green-text: #34d399;
+      --green-bg: rgba(16, 185, 129, 0.16);
+      --green-border: rgba(16, 185, 129, 0.4);
+      --cyan-text: #67e8f9;
+      --cyan-bg: rgba(6, 182, 212, 0.16);
+      --cyan-border: rgba(6, 182, 212, 0.4);
+      --red-text: #f87171;
+      --red-bg: rgba(239, 68, 68, 0.12);
+      --red-border: rgba(239, 68, 68, 0.35);
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部控制栏 */
+    .matrix-header {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border-muted);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+
+    .matrix-title-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .matrix-title-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .matrix-badge-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #06b6d4, #0284c7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.35);
+    }
+
+    .matrix-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
+    }
+
+    .matrix-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .matrix-stats {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-muted);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .stat-pill strong {
+      color: var(--cyan-text);
+      font-weight: 600;
+    }
+
+    /* 区域设置与筛选条 */
+    .matrix-region-setting-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed var(--border-muted);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .region-setting-label {
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .region-toggle-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-muted);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 2px 9px;
+      font-size: 11px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+
+    .region-toggle-pill:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+    }
+
+    .region-toggle-pill.enabled {
+      background: rgba(6, 182, 212, 0.16);
+      border-color: rgba(6, 182, 212, 0.5);
+      color: var(--cyan-text);
+      font-weight: 600;
+    }
+
+    /* 工具与筛选栏 */
+    .matrix-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .matrix-search-box {
+      position: relative;
+      width: 280px;
+    }
+
+    .matrix-search-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-muted);
+      border-radius: 8px;
+      padding: 7px 12px 7px 32px;
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .matrix-search-input:focus {
+      border-color: var(--border-highlight);
+      box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .matrix-category-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .cat-pill {
+      background: transparent;
+      border: 1px solid var(--border-muted);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .cat-pill:hover {
+      background: var(--bg-card);
+      color: var(--text-main);
+    }
+
+    .cat-pill.active {
+      background: rgba(6, 182, 212, 0.18);
+      border-color: #06b6d4;
+      color: var(--cyan-text);
+      font-weight: 600;
+    }
+
+    /* 探测动作区 */
+    .probe-action-box {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .probe-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      color: #ffffff;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.28);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
+
+    .probe-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0369a1, #0891b2);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .probe-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .probe-btn:disabled {
+      background: #1e293b;
+      border-color: #334155;
+      color: #64748b;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .probe-btn-icon {
+      font-size: 14px;
+      line-height: 1;
+      display: inline-block;
+    }
+
+    .probe-btn-icon.spinning {
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .probe-btn-count {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* 表格容器与 Sticky 冻结窗格 */
+    .matrix-table-container {
+      flex: 1;
+      overflow: auto;
+      background: var(--bg-base);
+      position: relative;
+    }
+
+    table.matrix-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* 冻结表头与首列 */
+    thead th {
+      background: #0f172a;
+      border-bottom: 2px solid var(--border-muted);
+      border-right: 1px solid var(--border-subtle);
+      padding: 12px 10px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    /* 首列：节点信息单元格 (Sticky Left) */
+    th.sticky-col-header,
+    td.sticky-col {
+      position: sticky;
+      left: 0;
+      z-index: 20;
+      background: #0f172a;
+      text-align: left;
+      padding: 10px 14px;
+      border-right: 2px solid var(--border-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      width: 200px;
+      min-width: 200px;
+      max-width: 200px;
+    }
+
+    th.sticky-col-header {
+      z-index: 40; /* 左上角交叉单元格层级最高 */
+    }
+
+    tbody tr:hover td.sticky-col {
+      background: #192338;
+    }
+
+    tbody tr:hover td {
+      background: rgba(6, 182, 212, 0.05);
+    }
+
+    tbody td {
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border-subtle);
+      border-right: 1px solid var(--border-subtle);
+      background: var(--bg-base);
+      transition: background 0.15s;
+    }
+
+    /* 行探测中动效 */
+    tr.row-probing td {
+      background: rgba(6, 182, 212, 0.08) !important;
+      position: relative;
+    }
+
+    tr.row-probing td.sticky-col {
+      background: #192a42 !important;
+      border-left: 3px solid var(--border-highlight);
+    }
+
+    .node-cell-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .node-region-flag {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .node-name-text {
+      font-weight: 600;
+      color: var(--text-main);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .node-group-badge {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      background: rgba(30, 41, 59, 0.6);
+      padding: 1px 5px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 2px;
+    }
+
+    /* 服务列头 */
+    .service-header-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 72px;
+    }
+
+    .service-header-name {
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .service-header-cat {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-weight: 400;
+      text-transform: uppercase;
+    }
+
+    /* 状态徽章 (Badges) */
+    .cell-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+      cursor: default;
+      transition: transform 0.1s;
+    }
+
+    .cell-badge:hover {
+      transform: scale(1.12);
+    }
+
+    /* IPv4 解锁成功（纯绿） */
+    .cell-badge.v4-ok {
+      background: var(--green-bg);
+      color: var(--green-text);
+      border: 1px solid var(--green-border);
+    }
+
+    /* 仅 IPv6 解锁成功（V6 + 青绿） */
+    .cell-badge.v6-ok {
+      background: var(--cyan-bg);
+      color: var(--cyan-text);
+      border: 1px solid var(--cyan-border);
+    }
+
+    /* 均未解锁（❌） */
+    .cell-badge.locked {
+      background: var(--red-bg);
+      color: var(--red-text);
+      border: 1px solid var(--red-border);
+      font-size: 11px;
+      font-weight: 400;
+    }
+
+    /* 未测试 / 未开启区域（-） */
+    .cell-badge.untested {
+      background: rgba(148, 163, 184, 0.08);
+      color: var(--text-dim);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 11px;
+      font-weight: 400;
+    }
+
+    /* 浮动提示框 Tooltip */
+    .tooltip {
+      position: relative;
+    }
+
+    .tooltip:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      border-radius: 6px;
+      white-space: nowrap;
+      z-index: 100;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+      border: 1px solid var(--border-muted);
+      pointer-events: none;
+    }
+
+    /* 探测结果 Toast 提示 */
+    .probe-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid var(--border-highlight);
+      color: #f8fafc;
+      padding: 11px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 999;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* 响应式微调 */
+    @media (max-width: 768px) {
+      .matrix-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .matrix-search-box {
+        width: 100%;
+      }
+      .probe-action-box {
+        margin-left: 0;
+        width: 100%;
+      }
+      .probe-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部控制与筛选栏 -->
+  <header class="matrix-header">
+    <div class="matrix-title-bar">
+      <div class="matrix-title-left">
+        <div class="matrix-badge-icon">🌐</div>
+        <div>
+          <h1 class="matrix-title">解锁矩阵</h1>
+          <p class="matrix-subtitle">各节点流媒体与 AI 解锁全景矩阵</p>
+        </div>
+      </div>
+      <div class="matrix-stats">
+        <div class="stat-pill">节点数: <strong id="statNodeCount">16</strong></div>
+        <div class="stat-pill">检测服务: <strong id="statServiceCount">29</strong></div>
+        <div class="stat-pill">综合解锁率: <strong id="statUnlockRate">82.4%</strong></div>
+      </div>
+    </div>
+
+    <!-- 动态区域感知提示与配置（模拟后台设置中开启的 region 参数） -->
+    <div class="matrix-region-setting-bar">
+      <span class="region-setting-label">⚙️ 后台启用区域 (Regions):</span>
+      <span class="region-toggle-pill enabled" data-region-id="0" title="Region 0: 跨国流媒体平台">跨国平台 (0)</span>
+      <span class="region-toggle-pill enabled" data-region-id="11" title="Region 11: AI 对话与大模型平台">AI 平台 (11)</span>
+      <span class="region-toggle-pill" data-region-id="1" title="Region 1: 台湾平台 (动画疯/KKTV等)">台湾 (1)</span>
+      <span class="region-toggle-pill" data-region-id="2" title="Region 2: 香港平台 (myTV/NowE等)">香港 (2)</span>
+      <span class="region-toggle-pill" data-region-id="3" title="Region 3: 日本平台 (Abema/TVer/U-NEXT等)">日本 (3)</span>
+      <span class="region-toggle-pill" data-region-id="5" title="Region 5: 北美平台 (Hulu/HBO Max等)">北美 (5)</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--text-dim);">* 点击标签可模拟用户在后台开关对应 Region，表格与列分类将自动随之重构</span>
+    </div>
+
+    <div class="matrix-toolbar">
+      <div class="matrix-search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="nodeSearchInput" class="matrix-search-input" placeholder="按节点名称或分组过滤..." />
+      </div>
+
+      <!-- 动态分类 Pills 容器，将根据开启的 region 自动构建 -->
+      <div class="matrix-category-pills" id="categoryPillsContainer">
+        <!-- JS 动态生成 -->
+      </div>
+
+      <div class="probe-action-box">
+        <button id="probeVisibleBtn" class="probe-btn" title="触发对当前表格中显示的节点进行并发解锁探测">
+          <span class="probe-btn-icon" id="probeBtnIcon">⚡</span>
+          <span id="probeBtnText">探测当前显示节点</span>
+          <span class="probe-btn-count" id="probeBtnCount">16</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 大表主容器 -->
+  <main class="matrix-table-container">
+    <table class="matrix-table" id="matrixTable">
+      <thead>
+        <tr id="headerRow">
+          <th class="sticky-col-header">VPS 节点 / 服务</th>
+          <!-- 服务列头通过 JS 动态生成 -->
+        </tr>
+      </thead>
+      <tbody id="matrixBody">
+        <!-- 节点行通过 JS 动态生成 -->
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    // 定义已知全量服务字典与其归属的 Region ID 与分类
+    // 当用户未在设置中开启某 region 时，该 region 的服务将根本不会作为列生成
+    const ALL_SERVICES_CATALOG = [
+      // 跨国流媒体 (Region 0: Globe)
+      { id: "netflix", name: "Netflix", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "disney", name: "Disney+", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "youtube_prem", name: "YouTube Prem", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "amazon", name: "Prime Video", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "apple", name: "Apple TV", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "spotify", name: "Spotify", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "tiktok", name: "TikTok", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "steam", name: "Steam", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "bilibili", name: "Bilibili", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "dazn", name: "DAZN", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "iqiyi", name: "iQIYI", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "wetv", name: "WeTV", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "tvb", name: "TVB Anywhere", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "viu", name: "Viu.com", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "reddit", name: "Reddit", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "twitter", name: "X (Twitter)", regionId: "0", cat: "globe", catName: "跨国平台" },
+      { id: "gplay", name: "Google Play", regionId: "0", cat: "globe", catName: "跨国平台" },
+
+      // AI 矩阵平台 (Region 11: AI)
+      { id: "chatgpt", name: "ChatGPT", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "claude", name: "Claude", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "gemini", name: "Gemini", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "copilot", name: "Copilot", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "perplexity", name: "Perplexity", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "grok", name: "xAI Grok", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "deepseek", name: "DeepSeek", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "poe", name: "Poe", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "mistral", name: "Mistral", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "coze", name: "Coze", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "kimi", name: "Moonshot Kimi", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+      { id: "dola", name: "Dola AI", regionId: "11", cat: "ai", catName: "AI 矩阵" },
+
+      // 台湾专区 (Region 1: Taiwan)
+      { id: "bahamut", name: "动画疯", regionId: "1", cat: "taiwan", catName: "台湾专区" },
+      { id: "kktv", name: "KKTV", regionId: "1", cat: "taiwan", catName: "台湾专区" },
+
+      // 香港专区 (Region 2: Hong Kong)
+      { id: "mytv", name: "myTV SUPER", regionId: "2", cat: "hongkong", catName: "香港专区" },
+      { id: "nowe", name: "Now E", regionId: "2", cat: "hongkong", catName: "香港专区" },
+
+      // 日本专区 (Region 3: Japan)
+      { id: "abema", name: "Abema", regionId: "3", cat: "japan", catName: "日本专区" },
+      { id: "tver", name: "TVer", regionId: "3", cat: "japan", catName: "日本专区" },
+      { id: "unext", name: "U-NEXT", regionId: "3", cat: "japan", catName: "日本专区" },
+
+      // 北美专区 (Region 5: North America)
+      { id: "hulu", name: "Hulu", regionId: "5", cat: "na", catName: "北美专区" },
+      { id: "max", name: "Max (HBO)", regionId: "5", cat: "na", catName: "北美专区" }
+    ];
+
+    // 当前在插件配置中启用的 Region 集合（默认仅勾选了 0 跨国平台 与 11 AI平台）
+    let activeRegions = new Set(["0", "11"]);
+
+    // 用户 16 台 VPS 节点的真实探测数据模拟镜像
+    const NODES = [
+      {
+        uuid: "8b6e4305-bbd8-4d2a-8086-91fe62409bc4",
+        name: "SG.OCI",
+        region: "🇸🇬",
+        group: "OCI; SG; NAT",
+        results: {
+          netflix: { v4: "SG", v6: "SG" },
+          disney: { v4: false, v6: "SG" },
+          youtube_prem: { v4: false, v6: "SG" },
+          amazon: { v4: "SG", v6: null },
+          apple: { v4: "SG", v6: "SG" },
+          spotify: { v4: false, v6: false },
+          tiktok: { v4: "SG", v6: null },
+          steam: { v4: "SG", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: "SG", v6: null },
+          iqiyi: { v4: "SG", v6: null },
+          wetv: { v4: "ID", v6: "ID" },
+          tvb: { v4: "SG", v6: null },
+          viu: { v4: "SG", v6: null },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "SG", v6: false },
+          gplay: { v4: false, v6: "SG" },
+          chatgpt: { v4: "SG", v6: "SG" },
+          claude: { v4: "SG", v6: "SG" },
+          gemini: { v4: false, v6: "SG" },
+          copilot: { v4: "SG", v6: "SG" },
+          perplexity: { v4: "SG", v6: "SG" },
+          grok: { v4: false, v6: false },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "SG", v6: false },
+          mistral: { v4: "SG", v6: "SG" },
+          coze: { v4: "SG", v6: false },
+          kimi: { v4: "OVERSEA", v6: "OVERSEA" },
+          dola: { v4: "SG", v6: false },
+          bahamut: { v4: false, v6: false },
+          abema: { v4: false, v6: false },
+          tver: { v4: false, v6: false },
+          unext: { v4: false, v6: false }
+        }
+      },
+      {
+        uuid: "c3002e01-e891-4b36-a17c-1bd2bcf9190d",
+        name: "SG.DW | 22nd",
+        region: "🇸🇬",
+        group: "SG",
+        results: {
+          netflix: { v4: "SG", v6: "SG" },
+          disney: { v4: "SG", v6: "SG" },
+          youtube_prem: { v4: "SG", v6: "SG" },
+          amazon: { v4: "SG", v6: null },
+          apple: { v4: "SG", v6: "SG" },
+          spotify: { v4: "SG", v6: "SG" },
+          tiktok: { v4: "SG", v6: null },
+          steam: { v4: "SG", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: "SG", v6: null },
+          iqiyi: { v4: "SG", v6: null },
+          wetv: { v4: "SG", v6: null },
+          tvb: { v4: "SG", v6: null },
+          viu: { v4: "SG", v6: null },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "SG", v6: null },
+          gplay: { v4: "SG", v6: "SG" },
+          chatgpt: { v4: "SG", v6: "SG" },
+          claude: { v4: "SG", v6: "SG" },
+          gemini: { v4: "SG", v6: "SG" },
+          copilot: { v4: "SG", v6: "SG" },
+          perplexity: { v4: "SG", v6: "SG" },
+          grok: { v4: "SG", v6: null },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "SG", v6: null },
+          mistral: { v4: "SG", v6: null },
+          coze: { v4: "SG", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "SG", v6: null },
+          bahamut: { v4: false, v6: false },
+          abema: { v4: false, v6: false },
+          tver: { v4: false, v6: false },
+          unext: { v4: false, v6: false }
+        }
+      },
+      {
+        uuid: "5ebe7233-605e-4021-80d8-0620c5c00148",
+        name: "JP.GC | 8th",
+        region: "🇯🇵",
+        group: "JP",
+        results: {
+          netflix: { v4: "JP", v6: "JP" },
+          disney: { v4: "JP", v6: "JP" },
+          youtube_prem: { v4: "JP", v6: "JP" },
+          amazon: { v4: "JP", v6: null },
+          apple: { v4: "JP", v6: "JP" },
+          spotify: { v4: "JP", v6: null },
+          tiktok: { v4: "JP", v6: null },
+          steam: { v4: "JP", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: "JP", v6: null },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "JP", v6: null },
+          gplay: { v4: "JP", v6: "JP" },
+          chatgpt: { v4: "JP", v6: "JP" },
+          claude: { v4: "JP", v6: "JP" },
+          gemini: { v4: "JP", v6: "JP" },
+          copilot: { v4: "JP", v6: "JP" },
+          perplexity: { v4: "JP", v6: "JP" },
+          grok: { v4: "JP", v6: null },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "JP", v6: null },
+          mistral: { v4: "JP", v6: null },
+          coze: { v4: "JP", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "JP", v6: null },
+          bahamut: { v4: false, v6: false },
+          abema: { v4: "YES", v6: "YES" },
+          tver: { v4: "YES", v6: "YES" },
+          unext: { v4: "YES", v6: "YES" }
+        }
+      },
+      {
+        uuid: "323920eb-7c4e-465c-a308-f01554ea7d2b",
+        name: "NYC.MassGrid",
+        region: "🇺🇸",
+        group: "US",
+        results: {
+          netflix: { v4: "US", v6: "US" },
+          disney: { v4: "US", v6: "US" },
+          youtube_prem: { v4: "US", v6: "US" },
+          amazon: { v4: "US", v6: "US" },
+          apple: { v4: "US", v6: "US" },
+          spotify: { v4: "US", v6: "US" },
+          tiktok: { v4: "US", v6: null },
+          steam: { v4: "US", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: "US", v6: null },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "US", v6: null },
+          gplay: { v4: "US", v6: "US" },
+          chatgpt: { v4: "US", v6: "US" },
+          claude: { v4: "US", v6: "US" },
+          gemini: { v4: "US", v6: "US" },
+          copilot: { v4: "US", v6: "US" },
+          perplexity: { v4: "US", v6: "US" },
+          grok: { v4: "US", v6: "US" },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "US", v6: "US" },
+          mistral: { v4: "US", v6: "US" },
+          coze: { v4: "US", v6: "US" },
+          kimi: { v4: "OVERSEA", v6: "OVERSEA" },
+          dola: { v4: "US", v6: "US" },
+          bahamut: { v4: false, v6: false },
+          abema: { v4: false, v6: false },
+          tver: { v4: false, v6: false },
+          unext: { v4: false, v6: false },
+          hulu: { v4: "US", v6: "US" },
+          max: { v4: "US", v6: "US" }
+        }
+      },
+      {
+        uuid: "172ed735-6c6e-44dc-8e1b-794776e1cab1",
+        name: "JP.OCI.ARM",
+        region: "🇯🇵",
+        group: "JP; OCI",
+        results: {
+          netflix: { v4: "JP", v6: "JP" },
+          disney: { v4: false, v6: "JP" },
+          youtube_prem: { v4: false, v6: "JP" },
+          amazon: { v4: "JP", v6: null },
+          apple: { v4: "JP", v6: "JP" },
+          spotify: { v4: false, v6: false },
+          tiktok: { v4: "JP", v6: null },
+          steam: { v4: "JP", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: false, v6: false },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "JP", v6: null },
+          gplay: { v4: false, v6: "JP" },
+          chatgpt: { v4: "JP", v6: "JP" },
+          claude: { v4: "JP", v6: "JP" },
+          gemini: { v4: false, v6: "JP" },
+          copilot: { v4: "JP", v6: "JP" },
+          perplexity: { v4: "JP", v6: "JP" },
+          grok: { v4: false, v6: false },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "JP", v6: null },
+          mistral: { v4: "JP", v6: null },
+          coze: { v4: "JP", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "JP", v6: null },
+          bahamut: { v4: false, v6: false },
+          abema: { v4: false, v6: "YES" },
+          tver: { v4: false, v6: false },
+          unext: { v4: false, v6: false }
+        }
+      },
+      {
+        uuid: "5d51b5ef-811e-4cdd-b3f5-a7f4f5459a42",
+        name: "LAX.ARM.OCI",
+        region: "🇺🇸",
+        group: "US; OCI",
+        results: {
+          netflix: { v4: "US", v6: "US" },
+          disney: { v4: false, v6: "US" },
+          youtube_prem: { v4: false, v6: "US" },
+          amazon: { v4: "US", v6: null },
+          apple: { v4: "US", v6: "US" },
+          spotify: { v4: false, v6: false },
+          tiktok: { v4: "US", v6: null },
+          steam: { v4: "US", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: false, v6: false },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "US", v6: null },
+          gplay: { v4: false, v6: "US" },
+          chatgpt: { v4: "US", v6: "US" },
+          claude: { v4: "US", v6: "US" },
+          gemini: { v4: false, v6: "US" },
+          copilot: { v4: "US", v6: "US" },
+          perplexity: { v4: "US", v6: "US" },
+          grok: { v4: false, v6: false },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "US", v6: null },
+          mistral: { v4: "US", v6: null },
+          coze: { v4: "US", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "US", v6: null }
+        }
+      },
+      {
+        uuid: "0eb589c5-6d2f-41bb-a54b-99f2c803941f",
+        name: "LAX.HDZ",
+        region: "🇺🇸",
+        group: "US",
+        results: {
+          netflix: { v4: "US", v6: "US" },
+          disney: { v4: "US", v6: "US" },
+          youtube_prem: { v4: "US", v6: "US" },
+          amazon: { v4: "US", v6: "US" },
+          apple: { v4: "US", v6: "US" },
+          spotify: { v4: "US", v6: "US" },
+          tiktok: { v4: "US", v6: null },
+          steam: { v4: "US", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: "US", v6: null },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "US", v6: null },
+          gplay: { v4: "US", v6: "US" },
+          chatgpt: { v4: "US", v6: "US" },
+          claude: { v4: "US", v6: "US" },
+          gemini: { v4: "US", v6: "US" },
+          copilot: { v4: "US", v6: "US" },
+          perplexity: { v4: "US", v6: "US" },
+          grok: { v4: "US", v6: "US" },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "US", v6: null },
+          mistral: { v4: "US", v6: null },
+          coze: { v4: "US", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "US", v6: null },
+          hulu: { v4: "US", v6: "US" }
+        }
+      },
+      {
+        uuid: "034c1e5a-72ab-40bc-93c1-b47f53613b92",
+        name: "HK.ZT | 11th",
+        region: "🇭🇰",
+        group: "HK",
+        results: {
+          netflix: { v4: "HK", v6: "HK" },
+          disney: { v4: "HK", v6: "HK" },
+          youtube_prem: { v4: "HK", v6: "HK" },
+          amazon: { v4: "HK", v6: null },
+          apple: { v4: "HK", v6: "HK" },
+          spotify: { v4: "HK", v6: null },
+          tiktok: { v4: false, v6: false },
+          steam: { v4: "HK", v6: null },
+          bilibili: { v4: "HK", v6: "HK" },
+          dazn: { v4: false, v6: false },
+          iqiyi: { v4: "HK", v6: null },
+          wetv: { v4: "HK", v6: null },
+          tvb: { v4: "HK", v6: null },
+          viu: { v4: "HK", v6: null },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "HK", v6: null },
+          gplay: { v4: "HK", v6: "HK" },
+          chatgpt: { v4: false, v6: false },
+          claude: { v4: false, v6: false },
+          gemini: { v4: false, v6: false },
+          copilot: { v4: "HK", v6: "HK" },
+          perplexity: { v4: "HK", v6: null },
+          grok: { v4: false, v6: false },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "HK", v6: null },
+          mistral: { v4: "HK", v6: null },
+          coze: { v4: "HK", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "HK", v6: null },
+          bahamut: { v4: "YES", v6: null },
+          mytv: { v4: "HK", v6: "HK" },
+          nowe: { v4: "HK", v6: "HK" }
+        }
+      },
+      {
+        uuid: "22d1529a-5b0c-424b-bfef-b2775d564432",
+        name: "LAX.AMD.OCI",
+        region: "🇺🇸",
+        group: "US; OCI",
+        results: {
+          netflix: { v4: "US", v6: "US" },
+          disney: { v4: false, v6: "US" },
+          youtube_prem: { v4: false, v6: "US" },
+          amazon: { v4: "US", v6: null },
+          apple: { v4: "US", v6: "US" },
+          spotify: { v4: false, v6: false },
+          tiktok: { v4: "US", v6: null },
+          steam: { v4: "US", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: false, v6: false },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "US", v6: null },
+          gplay: { v4: false, v6: "US" },
+          chatgpt: { v4: "US", v6: "US" },
+          claude: { v4: "US", v6: "US" },
+          gemini: { v4: false, v6: "US" },
+          copilot: { v4: "US", v6: "US" },
+          perplexity: { v4: "US", v6: "US" },
+          grok: { v4: false, v6: false },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "US", v6: null },
+          mistral: { v4: "US", v6: null },
+          coze: { v4: "US", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "US", v6: null }
+        }
+      },
+      {
+        uuid: "64a3e1bb-e989-4f64-a8aa-fac9f4d85218",
+        name: "US.VMISS",
+        region: "🇺🇸",
+        group: "US; NAT",
+        results: {
+          netflix: { v4: "US", v6: "US" },
+          disney: { v4: "US", v6: "US" },
+          youtube_prem: { v4: "US", v6: "US" },
+          amazon: { v4: "US", v6: null },
+          apple: { v4: "US", v6: "US" },
+          spotify: { v4: "US", v6: null },
+          tiktok: { v4: "US", v6: null },
+          steam: { v4: "US", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: false, v6: false },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "US", v6: null },
+          gplay: { v4: "US", v6: "US" },
+          chatgpt: { v4: "US", v6: "US" },
+          claude: { v4: "US", v6: "US" },
+          gemini: { v4: "US", v6: "US" },
+          copilot: { v4: "US", v6: "US" },
+          perplexity: { v4: "US", v6: "US" },
+          grok: { v4: "US", v6: null },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "US", v6: null },
+          mistral: { v4: "US", v6: null },
+          coze: { v4: "US", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "US", v6: null }
+        }
+      },
+      {
+        uuid: "7b3ab999-af85-4682-9a87-e0d3289f62fb",
+        name: "HK.WAWO.1",
+        region: "🇭🇰",
+        group: "HK; NAT",
+        results: {
+          netflix: { v4: "HK", v6: "HK" },
+          disney: { v4: "HK", v6: "HK" },
+          youtube_prem: { v4: "HK", v6: "HK" },
+          amazon: { v4: "HK", v6: null },
+          apple: { v4: "HK", v6: "HK" },
+          spotify: { v4: "HK", v6: null },
+          tiktok: { v4: false, v6: false },
+          steam: { v4: "HK", v6: null },
+          bilibili: { v4: "HK", v6: "HK" },
+          dazn: { v4: false, v6: false },
+          iqiyi: { v4: "HK", v6: null },
+          wetv: { v4: "HK", v6: null },
+          tvb: { v4: "HK", v6: null },
+          viu: { v4: "HK", v6: null },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "HK", v6: null },
+          gplay: { v4: "HK", v6: "HK" },
+          chatgpt: { v4: false, v6: false },
+          claude: { v4: false, v6: false },
+          gemini: { v4: false, v6: false },
+          copilot: { v4: "HK", v6: "HK" },
+          perplexity: { v4: "HK", v6: null },
+          grok: { v4: false, v6: false },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "HK", v6: null },
+          mistral: { v4: "HK", v6: null },
+          coze: { v4: "HK", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "HK", v6: null },
+          bahamut: { v4: "YES", v6: null },
+          mytv: { v4: "HK", v6: "HK" }
+        }
+      },
+      {
+        uuid: "ea17e017-fe23-4177-8c8a-52f06793638d",
+        name: "HK.WAWO.2",
+        region: "🇭🇰",
+        group: "HK; NAT",
+        results: {
+          netflix: { v4: "HK", v6: "HK" },
+          disney: { v4: "HK", v6: "HK" },
+          youtube_prem: { v4: "HK", v6: "HK" },
+          amazon: { v4: "HK", v6: null },
+          apple: { v4: "HK", v6: "HK" },
+          spotify: { v4: "HK", v6: null },
+          tiktok: { v4: false, v6: false },
+          steam: { v4: "HK", v6: null },
+          bilibili: { v4: "HK", v6: "HK" },
+          dazn: { v4: false, v6: false },
+          iqiyi: { v4: "HK", v6: null },
+          wetv: { v4: "HK", v6: null },
+          tvb: { v4: "HK", v6: null },
+          viu: { v4: "HK", v6: null },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "HK", v6: null },
+          gplay: { v4: "HK", v6: "HK" },
+          chatgpt: { v4: false, v6: false },
+          claude: { v4: false, v6: false },
+          gemini: { v4: false, v6: false },
+          copilot: { v4: "HK", v6: "HK" },
+          perplexity: { v4: "HK", v6: null },
+          grok: { v4: false, v6: false },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "HK", v6: null },
+          mistral: { v4: "HK", v6: null },
+          coze: { v4: "HK", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "HK", v6: null }
+        }
+      },
+      {
+        uuid: "c1d82e0f-fa71-4476-be11-44d53d74764b",
+        name: "JP.Bitsflow | 19th",
+        region: "🇯🇵",
+        group: "JP",
+        results: {
+          netflix: { v4: "JP", v6: "JP" },
+          disney: { v4: "JP", v6: "JP" },
+          youtube_prem: { v4: "JP", v6: "JP" },
+          amazon: { v4: "JP", v6: null },
+          apple: { v4: "JP", v6: "JP" },
+          spotify: { v4: "JP", v6: null },
+          tiktok: { v4: "JP", v6: null },
+          steam: { v4: "JP", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: "JP", v6: null },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "JP", v6: null },
+          gplay: { v4: "JP", v6: "JP" },
+          chatgpt: { v4: "JP", v6: "JP" },
+          claude: { v4: "JP", v6: "JP" },
+          gemini: { v4: "JP", v6: "JP" },
+          copilot: { v4: "JP", v6: "JP" },
+          perplexity: { v4: "JP", v6: "JP" },
+          grok: { v4: "JP", v6: null },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "JP", v6: null },
+          mistral: { v4: "JP", v6: null },
+          coze: { v4: "JP", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "JP", v6: null },
+          abema: { v4: "YES", v6: "YES" },
+          tver: { v4: "YES", v6: "YES" }
+        }
+      },
+      {
+        uuid: "0bf2afb5-9e0e-4700-ad77-0bb94c8f5d5c",
+        name: "HK.WAWO27",
+        region: "🇭🇰",
+        group: "HK",
+        results: {
+          netflix: { v4: "HK", v6: "HK" },
+          disney: { v4: "HK", v6: "HK" },
+          youtube_prem: { v4: "HK", v6: "HK" },
+          amazon: { v4: "HK", v6: null },
+          apple: { v4: "HK", v6: "HK" },
+          spotify: { v4: "HK", v6: null },
+          tiktok: { v4: false, v6: false },
+          steam: { v4: "HK", v6: null },
+          bilibili: { v4: "HK", v6: "HK" },
+          dazn: { v4: false, v6: false },
+          iqiyi: { v4: "HK", v6: null },
+          wetv: { v4: "HK", v6: null },
+          tvb: { v4: "HK", v6: null },
+          viu: { v4: "HK", v6: null },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "HK", v6: null },
+          gplay: { v4: "HK", v6: "HK" },
+          chatgpt: { v4: false, v6: false },
+          claude: { v4: false, v6: false },
+          gemini: { v4: false, v6: false },
+          copilot: { v4: "HK", v6: "HK" },
+          perplexity: { v4: "HK", v6: null },
+          grok: { v4: false, v6: false },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "HK", v6: null },
+          mistral: { v4: "HK", v6: null },
+          coze: { v4: "HK", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "HK", v6: null },
+          mytv: { v4: "HK", v6: "HK" }
+        }
+      },
+      {
+        uuid: "ae4ffe28-7b83-417a-8790-32787470074f",
+        name: "LAX.DMIT | 22nd",
+        region: "🇺🇸",
+        group: "US",
+        results: {
+          netflix: { v4: "US", v6: "US" },
+          disney: { v4: "US", v6: "US" },
+          youtube_prem: { v4: "US", v6: "US" },
+          amazon: { v4: "US", v6: "US" },
+          apple: { v4: "US", v6: "US" },
+          spotify: { v4: "US", v6: "US" },
+          tiktok: { v4: "US", v6: null },
+          steam: { v4: "US", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: "US", v6: null },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "US", v6: null },
+          gplay: { v4: "US", v6: "US" },
+          chatgpt: { v4: "US", v6: "US" },
+          claude: { v4: "US", v6: "US" },
+          gemini: { v4: "US", v6: "US" },
+          copilot: { v4: "US", v6: "US" },
+          perplexity: { v4: "US", v6: "US" },
+          grok: { v4: "US", v6: "US" },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "US", v6: null },
+          mistral: { v4: "US", v6: null },
+          coze: { v4: "US", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "US", v6: null }
+        }
+      },
+      {
+        uuid: "6465e133-a3a8-4d83-a109-91c3cdd9c542",
+        name: "JP.ZT.Plus | 19th",
+        region: "🇯🇵",
+        group: "JP",
+        results: {
+          netflix: { v4: "JP", v6: "JP" },
+          disney: { v4: "JP", v6: "JP" },
+          youtube_prem: { v4: "JP", v6: "JP" },
+          amazon: { v4: "JP", v6: null },
+          apple: { v4: "JP", v6: "JP" },
+          spotify: { v4: "JP", v6: null },
+          tiktok: { v4: "JP", v6: null },
+          steam: { v4: "JP", v6: null },
+          bilibili: { v4: false, v6: false },
+          dazn: { v4: "JP", v6: null },
+          iqiyi: { v4: false, v6: false },
+          wetv: { v4: false, v6: false },
+          tvb: { v4: false, v6: false },
+          viu: { v4: false, v6: false },
+          reddit: { v4: "YES", v6: null },
+          twitter: { v4: "JP", v6: null },
+          gplay: { v4: "JP", v6: "JP" },
+          chatgpt: { v4: "JP", v6: "JP" },
+          claude: { v4: "JP", v6: "JP" },
+          gemini: { v4: "JP", v6: "JP" },
+          copilot: { v4: "JP", v6: "JP" },
+          perplexity: { v4: "JP", v6: "JP" },
+          grok: { v4: "JP", v6: null },
+          deepseek: { v4: false, v6: false },
+          poe: { v4: "JP", v6: null },
+          mistral: { v4: "JP", v6: null },
+          coze: { v4: "JP", v6: null },
+          kimi: { v4: "OVERSEA", v6: null },
+          dola: { v4: "JP", v6: null },
+          abema: { v4: "YES", v6: "YES" }
+        }
+      }
+    ];
+
+    // 全局交互状态
+    let currentCategory = "all";
+    let searchQuery = "";
+    let isProbing = false;
+
+    // 核心函数：根据用户设置中开启的 Region，动态获取应生成在表格中的服务列
+    function getAvailableServices() {
+      return ALL_SERVICES_CATALOG.filter(svc => activeRegions.has(svc.regionId));
+    }
+
+    // 动态构建分类 Pills（根据开启的 Region 自动提取存在的分类与数量）
+    function renderCategoryPills() {
+      const container = document.getElementById("categoryPillsContainer");
+      const availableServices = getAvailableServices();
+
+      // 提取所有唯一分类
+      const catsMap = new Map();
+      availableServices.forEach(s => {
+        if (!catsMap.has(s.cat)) {
+          catsMap.set(s.cat, { id: s.cat, name: s.catName, count: 0 });
+        }
+        catsMap.get(s.cat).count++;
+      });
+
+      // 如果当前选中的分类在当前开启的 region 中已经不存在，则重置回 "all"
+      if (currentCategory !== "all" && !catsMap.has(currentCategory)) {
+        currentCategory = "all";
+      }
+
+      let pillsHtml = `<button class="cat-pill ${currentCategory === 'all' ? 'active' : ''}" data-cat="all">全部平台 (${availableServices.length})</button>`;
+      catsMap.forEach(cat => {
+        pillsHtml += `<button class="cat-pill ${currentCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}">${cat.name} (${cat.count})</button>`;
+      });
+
+      container.innerHTML = pillsHtml;
+
+      // 重新绑定点击事件
+      container.querySelectorAll(".cat-pill[data-cat]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          container.querySelectorAll(".cat-pill[data-cat]").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentCategory = btn.getAttribute("data-cat");
+          renderHeaders();
+          renderRows();
+        });
+      });
+    }
+
+    // 单元格状态精准判定
+    // 关键：若节点未测试此项或属于未执行的 region，显示 '-' 而非误判为 '❌'
+    function evaluateCell(cellData) {
+      if (cellData === undefined || cellData === null) {
+        return {
+          type: "untested",
+          text: "-",
+          tip: "该节点未执行此项测试或未开启此区域"
+        };
+      }
+
+      const v4 = cellData.v4;
+      const v6 = cellData.v6;
+
+      const v4Unlocked = Boolean(v4);
+      const v6Unlocked = Boolean(v6);
+
+      const tipText = "IPv4: " + (v4 || "NO") + " | IPv6: " + (v6 || "NO");
+
+      // 1. IPv4 优先解锁成功
+      if (v4Unlocked) {
+        return {
+          type: "v4-ok",
+          text: String(v4),
+          tip: tipText
+        };
+      }
+
+      // 2. 仅 IPv6 解锁成功
+      if (v6Unlocked) {
+        return {
+          type: "v6-ok",
+          text: "V6 " + String(v6),
+          tip: tipText
+        };
+      }
+
+      // 3. 确实测试过但均未解锁
+      return {
+        type: "locked",
+        text: "❌",
+        tip: tipText
+      };
+    }
+
+    function getFilteredServices() {
+      const available = getAvailableServices();
+      if (currentCategory === "all") return available;
+      return available.filter(s => s.cat === currentCategory);
+    }
+
+    function getFilteredNodes() {
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return NODES;
+      return NODES.filter(n => 
+        n.name.toLowerCase().includes(q) || 
+        n.group.toLowerCase().includes(q) || 
+        n.region.includes(q)
+      );
+    }
+
+    // 渲染动态表头
+    function renderHeaders() {
+      const headerRow = document.getElementById("headerRow");
+      headerRow.innerHTML = '<th class="sticky-col-header">VPS 节点 / 服务</th>';
+
+      const services = getFilteredServices();
+      services.forEach(svc => {
+        const th = document.createElement("th");
+        th.innerHTML = `
+          <div class="service-header-wrap">
+            <span class="service-header-name">${svc.name}</span>
+            <span class="service-header-cat">${svc.catName}</span>
+          </div>
+        `;
+        headerRow.appendChild(th);
+      });
+    }
+
+    // 渲染节点行
+    function renderRows() {
+      const tbody = document.getElementById("matrixBody");
+      tbody.innerHTML = "";
+
+      const filteredNodes = getFilteredNodes();
+      const filteredServices = getFilteredServices();
+
+      if (filteredNodes.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${filteredServices.length + 1}" style="padding:40px;color:var(--text-dim);">没有匹配到相关节点</td></tr>`;
+        updateProbeButtonState();
+        return;
+      }
+
+      filteredNodes.forEach(node => {
+        const tr = document.createElement("tr");
+        tr.dataset.uuid = node.uuid;
+
+        // 固定首列：节点名称与分组
+        const nodeTd = document.createElement("td");
+        nodeTd.className = "sticky-col";
+        nodeTd.innerHTML = `
+          <div class="node-cell-wrap">
+            <span class="node-region-flag">${node.region}</span>
+            <div style="overflow:hidden;">
+              <div class="node-name-text" title="${node.name}">${node.name}</div>
+              <span class="node-group-badge">${node.group}</span>
+            </div>
+          </div>
+        `;
+        tr.appendChild(nodeTd);
+
+        // 各服务单元格
+        filteredServices.forEach(svc => {
+          const td = document.createElement("td");
+          const cellData = node.results ? node.results[svc.id] : undefined;
+          const result = evaluateCell(cellData);
+
+          td.innerHTML = `
+            <span class="cell-badge ${result.type} tooltip" data-tip="${result.tip}">
+              ${result.text}
+            </span>
+          `;
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+
+      updateStats();
+      updateProbeButtonState();
+    }
+
+    function updateStats() {
+      const availableServices = getAvailableServices();
+      document.getElementById("statServiceCount").textContent = availableServices.length;
+      document.getElementById("statNodeCount").textContent = NODES.length;
+
+      // 计算当前开启服务的综合解锁率
+      let totalTests = 0;
+      let totalUnlocked = 0;
+      NODES.forEach(n => {
+        if (!n.results) return;
+        availableServices.forEach(svc => {
+          const res = n.results[svc.id];
+          if (res !== undefined && res !== null) {
+            totalTests++;
+            if (res.v4 || res.v6) totalUnlocked++;
+          }
+        });
+      });
+
+      const rate = totalTests > 0 ? ((totalUnlocked / totalTests) * 100).toFixed(1) + "%" : "0.0%";
+      document.getElementById("statUnlockRate").textContent = rate;
+    }
+
+    function updateProbeButtonState() {
+      const btn = document.getElementById("probeVisibleBtn");
+      const countSpan = document.getElementById("probeBtnCount");
+      const textSpan = document.getElementById("probeBtnText");
+      if (!btn || !countSpan || isProbing) return;
+
+      const visibleNodes = getFilteredNodes();
+      countSpan.textContent = visibleNodes.length;
+
+      if (visibleNodes.length === 0) {
+        btn.disabled = true;
+        btn.title = "当前无匹配的节点";
+        textSpan.textContent = "无匹配节点";
+      } else {
+        btn.disabled = false;
+        btn.title = `触发对当前显示的 ${visibleNodes.length} 个节点进行并发解锁探测`;
+        textSpan.textContent = "探测当前显示节点";
+      }
+    }
+
+    function showToast(message) {
+      const existing = document.querySelector(".probe-toast");
+      if (existing) existing.remove();
+
+      const toast = document.createElement("div");
+      toast.className = "probe-toast";
+      toast.innerHTML = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.transition = "opacity 0.4s, transform 0.4s";
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(10px)";
+        setTimeout(() => toast.remove(), 400);
+      }, 3500);
+    }
+
+    // 探测动作触发
+    async function triggerProbeForVisibleNodes() {
+      if (isProbing) return;
+      const targetNodes = getFilteredNodes();
+      if (targetNodes.length === 0) {
+        showToast("⚠️ 当前没有匹配的节点可供探测");
+        return;
+      }
+
+      isProbing = true;
+      const btn = document.getElementById("probeVisibleBtn");
+      const icon = document.getElementById("probeBtnIcon");
+      const textSpan = document.getElementById("probeBtnText");
+      const countSpan = document.getElementById("probeBtnCount");
+
+      btn.disabled = true;
+      icon.textContent = "🔄";
+      icon.classList.add("spinning");
+      textSpan.textContent = "正在并发探测";
+      countSpan.textContent = `0/${targetNodes.length}`;
+
+      // 为当前显示的节点行添加探测中动态高亮
+      const targetUuids = new Set(targetNodes.map(n => n.uuid));
+      document.querySelectorAll("#matrixBody tr").forEach(tr => {
+        if (targetUuids.has(tr.dataset.uuid)) {
+          tr.classList.add("row-probing");
+        }
+      });
+
+      // 如果运行在 Komari 真实环境，尝试发起真实后端探测请求
+      const probePayload = { client_uuids: Array.from(targetUuids), force: true };
+      try {
+        fetch("/api/plugin/unlock-test/probe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(probePayload)
+        }).catch(() => {});
+      } catch (e) {}
+
+      // 拟真进度反馈体验
+      let finished = 0;
+      const stepDuration = Math.max(120, Math.min(600, Math.floor(2200 / targetNodes.length)));
+
+      const progressInterval = setInterval(() => {
+        finished++;
+        countSpan.textContent = `${finished}/${targetNodes.length}`;
+
+        const finishedNode = targetNodes[finished - 1];
+        if (finishedNode) {
+          const row = document.querySelector(`#matrixBody tr[data-uuid="${finishedNode.uuid}"]`);
+          if (row) row.classList.remove("row-probing");
+        }
+
+        if (finished >= targetNodes.length) {
+          clearInterval(progressInterval);
+          completeProbing();
+        }
+      }, stepDuration);
+
+      function completeProbing() {
+        document.querySelectorAll("#matrixBody tr.row-probing").forEach(tr => {
+          tr.classList.remove("row-probing");
+        });
+
+        isProbing = false;
+        icon.textContent = "⚡";
+        icon.classList.remove("spinning");
+        updateProbeButtonState();
+
+        showToast(`✅ 探测完成：已针对当前显示的 <strong>${targetNodes.length}</strong> 个节点执行全量解锁刷新`);
+      }
+    }
+
+    function renderMatrix() {
+      renderCategoryPills();
+      renderHeaders();
+      renderRows();
+    }
+
+    // 事件绑定：搜索框过滤
+    document.getElementById("nodeSearchInput").addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      renderRows();
+    });
+
+    // 事件绑定：模拟设置中开启/关闭 Region
+    document.querySelectorAll(".region-toggle-pill[data-region-id]").forEach(pill => {
+      pill.addEventListener("click", () => {
+        const rid = pill.getAttribute("data-region-id");
+        if (activeRegions.has(rid)) {
+          if (activeRegions.size === 1) {
+            showToast("⚠️ 请至少保留一个开启的 Region");
+            return;
+          }
+          activeRegions.delete(rid);
+          pill.classList.remove("enabled");
+        } else {
+          activeRegions.add(rid);
+          pill.classList.add("enabled");
+        }
+        renderMatrix();
+      });
+    });
+
+    document.getElementById("probeVisibleBtn").addEventListener("click", triggerProbeForVisibleNodes);
+
+    // 初始渲染
+    renderMatrix();
+
+    // === 真实 Komari 插件环境数据同步与实时探测支持 ===
+    async function loadLiveSnapshot() {
+      try {
+        const resp = await fetch("/api/plugin/unlock-test/snapshot");
+        if (!resp.ok) return;
+        const resJson = await resp.json();
+        if (resJson && resJson.status === "success" && resJson.data) {
+          const snap = resJson.data;
+          
+          // 1. 同步配置中启用的 Regions
+          if (Array.isArray(snap.regions) && snap.regions.length > 0) {
+            activeRegions = new Set(snap.regions);
+            // 更新设置标签的高亮状态
+            document.querySelectorAll(".region-toggle-pill[data-region-id]").forEach(pill => {
+              const rid = pill.getAttribute("data-region-id");
+              if (activeRegions.has(rid)) {
+                pill.classList.add("enabled");
+              } else {
+                pill.classList.remove("enabled");
+              }
+            });
+          }
+
+          // 2. 将后端真实节点转换为大表格式
+          if (snap.nodes && Object.keys(snap.nodes).length > 0) {
+            const liveNodes = [];
+            const allServiceSet = new Map();
+
+            Object.keys(snap.nodes).forEach(uuid => {
+              const nodeData = snap.nodes[uuid];
+              if (!nodeData) return;
+              
+              const nodeEntry = {
+                uuid: uuid,
+                name: nodeData.name || (nodeData.meta && nodeData.meta.name) || uuid.slice(0, 8),
+                region: nodeData.nodeRegion || (nodeData.meta && nodeData.meta.region) || "🌐",
+                group: nodeData.group || (nodeData.meta && nodeData.meta.group) || "DEFAULT",
+                results: {}
+              };
+
+              // 收集每个服务的测试结果
+              if (Array.isArray(nodeData.services)) {
+                nodeData.services.forEach(svc => {
+                  const svcId = svc.id || svc.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                  const v4Unlocked = svc.ipv4 ? Boolean(svc.ipv4.unlocked) : (svc.unlocked && (!svc.ipv6 || svc.ipv4));
+                  const v6Unlocked = svc.ipv6 ? Boolean(svc.ipv6.unlocked) : false;
+                  
+                  let v4Val = false;
+                  if (v4Unlocked) {
+                    v4Val = (svc.ipv4 && svc.ipv4.region) ? svc.ipv4.region : (svc.region || "YES");
+                  }
+                  let v6Val = false;
+                  if (v6Unlocked) {
+                    v6Val = (svc.ipv6 && svc.ipv6.region) ? svc.ipv6.region : (svc.region || "YES");
+                  }
+
+                  nodeEntry.results[svcId] = {
+                    v4: v4Val,
+                    v6: v6Val
+                  };
+
+                  // 自动发现新服务并加入字典
+                  if (!allServiceSet.has(svcId)) {
+                    allServiceSet.set(svcId, {
+                      id: svcId,
+                      name: svc.displayName || svc.name,
+                      regionId: svc.regionId || "0",
+                      cat: svc.regionKey ? svc.regionKey.toLowerCase() : "globe",
+                      catName: svc.regionKey || "跨国平台"
+                    });
+                  }
+                });
+              }
+
+              liveNodes.push(nodeEntry);
+            });
+
+            if (liveNodes.length > 0) {
+              NODES.length = 0;
+              liveNodes.forEach(n => NODES.push(n));
+
+              // 动态扩充服务字典
+              allServiceSet.forEach((svcObj, sid) => {
+                const existing = ALL_SERVICES_CATALOG.find(s => s.id === sid);
+                if (!existing) {
+                  ALL_SERVICES_CATALOG.push(svcObj);
+                }
+              });
+
+              renderMatrix();
+            }
+          }
+        }
+      } catch (e) {
+        // 离线或本地静态环境，保留内置镜像数据
+      }
+    }
+
+    // 页面载入时自动加载真实快照
+    loadLiveSnapshot();
+
+  </script>
+</body>
+</html>

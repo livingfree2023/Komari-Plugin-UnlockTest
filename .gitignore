@@ -1,0 +1,10 @@
+# Cloned reference repositories
+MediaUnlockTest/
+komari/
+
+# OS & Build artifacts
+.DS_Store
+*.zip
+dist/
+node_modules/
+komari-agent/

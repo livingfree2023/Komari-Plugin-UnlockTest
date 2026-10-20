@@ -1,0 +1,74 @@
+IPv4 地址：192.0.2.1
+地区：SG / Unknown / Singapore
+ISP：Cloudflare, Inc. (AS13335)
+IPv6 地址：2001:db8::1
+地区：SG / Unknown / Singapore
+ISP：Cloudflare London, LLC (AS13335)
+性能统计: 总测试数量: 58 | 总耗时: 4.71s
+测试时间:  2026-10-20 06:04:20
+[ Globe (IPv4) ] ============
+Amazon Prime Video        YES (Region: SG)
+Apple                     YES (Region: SG)
+Bilibili Anime            Restricted
+Bing                      YES (Region: SG)
+Dazn                      YES (Region: SG)
+Disney+                   NO
+Google Play Store         NO  (Region: CN)
+iQiYi                     YES (Region: SG)
+Netflix                   YES (Region: SG)
+Netflix CDN               SG
+Reddit                    YES
+Spotify Registration      NO
+Steam                     YES (Region: SG)
+TikTok                    YES (Region: ALISG)
+TVBAnywhere+              YES (Region: SG)
+Viu.com                   YES (Region: SG)
+WeTV                      YES (Region: ID)
+Wikipedia Editability     NO
+X (formerly Twitter)      YES (Region: SG)
+Youtube CDN               HKG
+Youtube Premium           NO
+[ AI (IPv4) ] ===============
+OpenAI ChatGPT            YES (Region: SG)
+Anthropic Claude          YES (Region: SG)
+Microsoft Copilot         YES (Region: SG)
+Google Gemini             NO  (Region: CN)
+Quora Poe                 YES (Region: SG)
+Perplexity AI             YES (Region: SG)
+Mistral AI                YES (Region: SG)
+x.AI Grok                 Banned
+ByteDance Coze            YES (Region: SG)
+DeepSeek                  Unexpected
+Moonshot Kimi             YES (Region: OVERSEA)
+Dola AI                   YES (Region: SG)
+[ Globe (IPv6) ] ============
+Apple                     YES (Region: SG)
+Bilibili Anime            ERR (Network Err)
+Bing                      YES (Region: WW)
+Disney+                   YES (Region: SG)
+Google Play Store         YES (Region: SG)
+Netflix                   YES (Region: SG)
+Netflix CDN               SG
+Spotify Registration      NO
+WeTV                      YES (Region: ID)
+Wikipedia Editability     NO
+X (formerly Twitter)      ERR
+Youtube CDN               SIN
+Youtube Premium           YES (Region: SG)
+[ AI (IPv6) ] ===============
+OpenAI ChatGPT            YES (Region: SG)
+Anthropic Claude          YES (Region: SG)
+Microsoft Copilot         YES (Region: SG)
+Google Gemini             YES (Region: SG)
+Quora Poe                 ERR
+Perplexity AI             YES (Region: SG)
+Mistral AI                YES (Region: SG)
+x.AI Grok                 Banned
+ByteDance Coze            ERR (Network Err)
+DeepSeek                  Unexpected
+Moonshot Kimi             YES (Region: OVERSEA)
+Dola AI                   ERR (Network Err)
+检测完毕，感谢您的使用！
+当天运行共451次, 本月运行共4094次, 共计运行4094次
+Made with LOVE by Hsukqi Lee
+已经是最新版本

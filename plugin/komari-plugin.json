@@ -1,0 +1,323 @@
+{
+  "name": {
+    "zh_CN": "流媒体与 AI 解锁检测",
+    "zh-CN": "流媒体与 AI 解锁检测",
+    "en": "Media & AI Unlock Test"
+  },
+  "short": "unlock-test",
+  "description": {
+    "zh_CN": "基于 MediaUnlockTest 探测各 VPS 节点的流媒体与 AI 平台解锁状态，并在 Komari 首页注入可拖动浮层展示各服务 Logo、红绿解锁边框与区域缩写。",
+    "zh-CN": "基于 MediaUnlockTest 探测各 VPS 节点的流媒体与 AI 平台解锁状态，并在 Komari 首页注入可拖动浮层展示各服务 Logo、红绿解锁边框与区域缩写。",
+    "en": "Probe VPS media and AI unlock status via MediaUnlockTest and inject a draggable floating overlay on the Komari homepage showing service logos, green/red borders, and region codes."
+  },
+  "author": {
+    "zh_CN": "livingfree2023 (livingfree2023@outlook.com)",
+    "zh-CN": "livingfree2023 (livingfree2023@outlook.com)",
+    "en": "livingfree2023 (livingfree2023@outlook.com)"
+  },
+  "version": "0.1.0",
+  "url": "https://github.com/livingfree2023/Komari-Plugin-UnlockTest",
+  "komari": ">=1.0.5",
+  "entry": "script.js",
+  "permissions": {
+    "node": true,
+    "allowRoutes": true,
+    "allowSystemRPC": true,
+    "allowHTMLInject": true,
+    "timeout": 30,
+    "maxHTTPBodyBytes": 524288
+  },
+  "configuration": {
+    "type": "managed",
+    "name": {
+      "zh_CN": "MediaUnlockTest 解锁探测配置",
+      "zh-CN": "MediaUnlockTest 解锁探测配置",
+      "en": "MediaUnlockTest Probe Configuration"
+    },
+    "data": [
+      {
+        "type": "title",
+        "name": {
+          "zh_CN": "检测区域选择 (对应 MediaUnlockTest -region 参数)",
+          "zh-CN": "检测区域选择 (对应 MediaUnlockTest -region 参数)",
+          "en": "Target Regions (Maps to MediaUnlockTest -region flag)"
+        }
+      },
+      {
+        "key": "region_0",
+        "type": "switch",
+        "default": true,
+        "name": {
+          "zh_CN": "[0] 跨国平台 (Globe)",
+          "zh-CN": "[0] 跨国平台 (Globe)",
+          "en": "[0] Global Platforms (Globe)"
+        },
+        "help": {
+          "zh_CN": "Netflix, Disney+, YouTube Premium, TikTok, Spotify, Amazon Prime Video, Apple, Steam, Bilibili, Reddit, X 等",
+          "zh-CN": "Netflix, Disney+, YouTube Premium, TikTok, Spotify, Amazon Prime Video, Apple, Steam, Bilibili, Reddit, X 等",
+          "en": "Netflix, Disney+, YouTube Premium, TikTok, Spotify, Amazon Prime Video, Apple, Steam, Bilibili, Reddit, X, etc."
+        }
+      },
+      {
+        "key": "region_1",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[1] 台湾平台 (Taiwan)",
+          "zh-CN": "[1] 台湾平台 (Taiwan)",
+          "en": "[1] Taiwan Platforms (Taiwan)"
+        },
+        "help": {
+          "zh_CN": "Bahamut Anime (巴哈姆特动画疯), KKTV, LiTV, LineTV, Hami Video, Friday Video, MyVideo, CatchPlay+, 4GTV, Ofiii",
+          "zh-CN": "Bahamut Anime (巴哈姆特动画疯), KKTV, LiTV, LineTV, Hami Video, Friday Video, MyVideo, CatchPlay+, 4GTV, Ofiii",
+          "en": "Bahamut Anime, KKTV, LiTV, LineTV, Hami Video, Friday Video, MyVideo, CatchPlay+, 4GTV, Ofiii"
+        }
+      },
+      {
+        "key": "region_2",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[2] 香港平台 (HongKong)",
+          "zh-CN": "[2] 香港平台 (HongKong)",
+          "en": "[2] Hong Kong Platforms (HongKong)"
+        },
+        "help": {
+          "zh_CN": "MyTVSuper, Viu.TV, Hoy TV, Bahamut Anime, Max, NBA TV, SonyLiv",
+          "zh-CN": "MyTVSuper, Viu.TV, Hoy TV, Bahamut Anime, Max, NBA TV, SonyLiv",
+          "en": "MyTVSuper, Viu.TV, Hoy TV, Bahamut Anime, Max, NBA TV, SonyLiv"
+        }
+      },
+      {
+        "key": "region_3",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[3] 日本平台 (Japan)",
+          "zh-CN": "[3] 日本平台 (Japan)",
+          "en": "[3] Japan Platforms (Japan)"
+        },
+        "help": {
+          "zh_CN": "Abema, DMM, U-NEXT, NHK+, Niconico, Hulu Japan, TVer, D Anime Store, FOD, Lemino, Wowow, Radiko 等",
+          "zh-CN": "Abema, DMM, U-NEXT, NHK+, Niconico, Hulu Japan, TVer, D Anime Store, FOD, Lemino, Wowow, Radiko 等",
+          "en": "Abema, DMM, U-NEXT, NHK+, Niconico, Hulu Japan, TVer, D Anime Store, FOD, Lemino, Wowow, Radiko, etc."
+        }
+      },
+      {
+        "key": "region_4",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[4] 韩国平台 (Korea)",
+          "zh-CN": "[4] 韩国平台 (Korea)",
+          "en": "[4] Korea Platforms (Korea)"
+        },
+        "help": {
+          "zh_CN": "Tving, Wavve, Coupang Play, Naver TV, KBS, SOOP, Spotv Now, Watcha, Panda TV",
+          "zh-CN": "Tving, Wavve, Coupang Play, Naver TV, KBS, SOOP, Spotv Now, Watcha, Panda TV",
+          "en": "Tving, Wavve, Coupang Play, Naver TV, KBS, SOOP, Spotv Now, Watcha, Panda TV"
+        }
+      },
+      {
+        "key": "region_5",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[5] 北美平台 (NorthAmerica)",
+          "zh-CN": "[5] 北美平台 (NorthAmerica)",
+          "en": "[5] North America Platforms (NorthAmerica)"
+        },
+        "help": {
+          "zh_CN": "Hulu, Max, ESPN+, Peacock TV, Paramount+, Discovery+, Crunchyroll, Sling TV, Pluto TV, Tubi TV, FOX, NBC TV 等",
+          "zh-CN": "Hulu, Max, ESPN+, Peacock TV, Paramount+, Discovery+, Crunchyroll, Sling TV, Pluto TV, Tubi TV, FOX, NBC TV 等",
+          "en": "Hulu, Max, ESPN+, Peacock TV, Paramount+, Discovery+, Crunchyroll, Sling TV, Pluto TV, Tubi TV, FOX, NBC TV, etc."
+        }
+      },
+      {
+        "key": "region_6",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[6] 南美平台 (SouthAmerica)",
+          "zh-CN": "[6] 南美平台 (SouthAmerica)",
+          "en": "[6] South America Platforms (SouthAmerica)"
+        },
+        "help": {
+          "zh_CN": "DirecTV GO, Max",
+          "zh-CN": "DirecTV GO, Max",
+          "en": "DirecTV GO, Max"
+        }
+      },
+      {
+        "key": "region_7",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[7] 欧洲平台 (Europe)",
+          "zh-CN": "[7] 欧洲平台 (Europe)",
+          "en": "[7] Europe Platforms (Europe)"
+        },
+        "help": {
+          "zh_CN": "BBC iPlayer, ITVX, Channel 4/5, Sky Go, Canal+, France TV, Joyn, ZDF, Rai Play, Movistar Plus+, Viaplay 等",
+          "zh-CN": "BBC iPlayer, ITVX, Channel 4/5, Sky Go, Canal+, France TV, Joyn, ZDF, Rai Play, Movistar Plus+, Viaplay 等",
+          "en": "BBC iPlayer, ITVX, Channel 4/5, Sky Go, Canal+, France TV, Joyn, ZDF, Rai Play, Movistar Plus+, Viaplay, etc."
+        }
+      },
+      {
+        "key": "region_8",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[8] 非洲平台 (Africa)",
+          "zh-CN": "[8] 非洲平台 (Africa)",
+          "en": "[8] Africa Platforms (Africa)"
+        },
+        "help": {
+          "zh_CN": "DSTV",
+          "zh-CN": "DSTV",
+          "en": "DSTV"
+        }
+      },
+      {
+        "key": "region_9",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[9] 东南亚平台 (SouthEastAsia)",
+          "zh-CN": "[9] 东南亚平台 (SouthEastAsia)",
+          "en": "[9] Southeast Asia Platforms (SouthEastAsia)"
+        },
+        "help": {
+          "zh_CN": "MeWatch, TrueID, AIS Play, Sooka, Hotstar, Galaxy Play, K+, Tata Play, MX Player, Zee5",
+          "zh-CN": "MeWatch, TrueID, AIS Play, Sooka, Hotstar, Galaxy Play, K+, Tata Play, MX Player, Zee5",
+          "en": "MeWatch, TrueID, AIS Play, Sooka, Hotstar, Galaxy Play, K+, Tata Play, MX Player, Zee5"
+        }
+      },
+      {
+        "key": "region_10",
+        "type": "switch",
+        "default": false,
+        "name": {
+          "zh_CN": "[10] 大洋洲平台 (Oceania)",
+          "zh-CN": "[10] 大洋洲平台 (Oceania)",
+          "en": "[10] Oceania Platforms (Oceania)"
+        },
+        "help": {
+          "zh_CN": "Stan, 7Plus, 10 Play, ABC iView, Channel 9, Kayo Sports, Neon TV, SBS on Demand, Sky Go NZ, Three Now",
+          "zh-CN": "Stan, 7Plus, 10 Play, ABC iView, Channel 9, Kayo Sports, Neon TV, SBS on Demand, Sky Go NZ, Three Now",
+          "en": "Stan, 7Plus, 10 Play, ABC iView, Channel 9, Kayo Sports, Neon TV, SBS on Demand, Sky Go NZ, Three Now"
+        }
+      },
+      {
+        "key": "region_11",
+        "type": "switch",
+        "default": true,
+        "name": {
+          "zh_CN": "[11] AI 平台 (AI)",
+          "zh-CN": "[11] AI 平台 (AI)",
+          "en": "[11] AI Platforms (AI)"
+        },
+        "help": {
+          "zh_CN": "OpenAI ChatGPT, Anthropic Claude, Google Gemini, Microsoft Copilot, Perplexity AI, x.AI Grok, DeepSeek, Quora Poe, Mistral AI, ByteDance Coze, Moonshot Kimi, Dola AI",
+          "zh-CN": "OpenAI ChatGPT, Anthropic Claude, Google Gemini, Microsoft Copilot, Perplexity AI, x.AI Grok, DeepSeek, Quora Poe, Mistral AI, ByteDance Coze, Moonshot Kimi, Dola AI",
+          "en": "OpenAI ChatGPT, Anthropic Claude, Google Gemini, Microsoft Copilot, Perplexity AI, x.AI Grok, DeepSeek, Quora Poe, Mistral AI, ByteDance Coze, Moonshot Kimi, Dola AI"
+        }
+      },
+      {
+        "type": "title",
+        "name": {
+          "zh_CN": "运行参数与定时巡检策略",
+          "zh-CN": "运行参数与定时巡检策略",
+          "en": "Execution Parameters & Cron Schedule"
+        }
+      },
+      {
+        "key": "ip_mode",
+        "type": "select",
+        "options": "0,4,6",
+        "default": "0",
+        "name": {
+          "zh_CN": "连接模式 (-m)",
+          "zh-CN": "连接模式 (-m)",
+          "en": "IP Connection Mode (-m)"
+        },
+        "help": {
+          "zh_CN": "0 = 自动测试双栈 (IPv4 + IPv6)，4 = 仅测试 IPv4，6 = 仅测试 IPv6",
+          "zh-CN": "0 = 自动测试双栈 (IPv4 + IPv6)，4 = 仅测试 IPv4，6 = 仅测试 IPv6",
+          "en": "0 = Auto Dual-Stack (IPv4 + IPv6), 4 = IPv4 Only, 6 = IPv6 Only"
+        }
+      },
+      {
+        "key": "concurrency",
+        "type": "number",
+        "default": 30,
+        "name": {
+          "zh_CN": "最大并发数 (-conc)",
+          "zh-CN": "最大并发数 (-conc)",
+          "en": "Max Concurrency (-conc)"
+        },
+        "help": {
+          "zh_CN": "限制 unlock-test 最大并发检测协程数，0 表示无限制，低配机器建议 20~30",
+          "zh-CN": "限制 unlock-test 最大并发检测协程数，0 表示无限制，低配机器建议 20~30",
+          "en": "Max concurrent tests for unlock-test (0 = unlimited, 20-30 recommended)"
+        }
+      },
+      {
+        "key": "cron_spec",
+        "type": "string",
+        "default": "0 */6 * * *",
+        "name": {
+          "zh_CN": "定时巡检 Cron 表达式",
+          "zh-CN": "定时巡检 Cron 表达式",
+          "en": "Background Probe Cron Expression"
+        },
+        "help": {
+          "zh_CN": "后台自动执行 MediaUnlockTest 的 Cron 周期，默认每 6 小时执行一次 (0 */6 * * *)",
+          "zh-CN": "后台自动执行 MediaUnlockTest 的 Cron 周期，默认每 6 小时执行一次 (0 */6 * * *)",
+          "en": "Cron schedule for background MediaUnlockTest probes (default: 0 */6 * * *)"
+        }
+      },
+      {
+        "key": "target_nodes",
+        "type": "nodes",
+        "default": "[]",
+        "name": {
+          "zh_CN": "限定探测节点 (留空则自动探测全部在线节点)",
+          "zh-CN": "限定探测节点 (留空则自动探测全部在线节点)",
+          "en": "Target Nodes (Leave empty to probe all online nodes)"
+        },
+        "help": {
+          "zh_CN": "若不勾选任何节点，插件将默认对所有当前在线的 VPS 节点下发解锁探测任务",
+          "zh-CN": "若不勾选任何节点，插件将默认对所有当前在线的 VPS 节点下发解锁探测任务",
+          "en": "If empty, all currently online VPS nodes will be probed automatically"
+        }
+      },
+      {
+        "key": "auto_probe_on_save",
+        "type": "switch",
+        "default": true,
+        "name": {
+          "zh_CN": "保存配置或启动时自动补齐探测",
+          "zh-CN": "保存配置或启动时自动补齐探测",
+          "en": "Auto-Probe on Config Save or Startup"
+        },
+        "help": {
+          "zh_CN": "启用后，当修改检测区域并保存配置、或存在尚无快照数据的在线节点时，自动在后台发起一次探测",
+          "zh-CN": "启用后，当修改检测区域并保存配置、或存在尚无快照数据的在线节点时，自动在后台发起一次探测",
+          "en": "Automatically trigger a background probe when region settings change or online nodes lack snapshots"
+        }
+      }
+    ]
+  },
+  "pages": [
+    {
+      "file": "pages/matrix.html",
+      "title": {
+        "zh_CN": "解锁矩阵",
+        "zh-CN": "解锁矩阵",
+        "en": "Unlock Matrix"
+      },
+      "visibility": "admin"
+    }
+  ]
+}
