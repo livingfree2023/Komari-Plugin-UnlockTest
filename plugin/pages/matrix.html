@@ -574,16 +574,17 @@
       </div>
     </div>
 
-    <!-- 动态区域感知提示与配置（模拟后台设置中开启的 region 参数） -->
-    <div class="matrix-region-setting-bar">
-      <span class="region-setting-label">⚙️ 后台启用区域 (Regions):</span>
-      <span class="region-toggle-pill enabled" data-region-id="0" title="Region 0: 跨国流媒体平台">跨国平台 (0)</span>
-      <span class="region-toggle-pill enabled" data-region-id="11" title="Region 11: AI 对话与大模型平台">AI 平台 (11)</span>
-      <span class="region-toggle-pill" data-region-id="1" title="Region 1: 台湾平台 (动画疯/KKTV等)">台湾 (1)</span>
-      <span class="region-toggle-pill" data-region-id="2" title="Region 2: 香港平台 (myTV/NowE等)">香港 (2)</span>
-      <span class="region-toggle-pill" data-region-id="3" title="Region 3: 日本平台 (Abema/TVer/U-NEXT等)">日本 (3)</span>
-      <span class="region-toggle-pill" data-region-id="5" title="Region 5: 北美平台 (Hulu/HBO Max等)">北美 (5)</span>
-      <span style="margin-left:auto;font-size:11px;color:var(--text-dim);">* 点击标签可模拟用户在后台开关对应 Region，表格与列分类将自动随之重构</span>
+    <!-- 动态区域感知与切换栏 -->
+    <div class="matrix-region-setting-bar" id="matrixRegionBar">
+      <span class="region-setting-label">⚙️ 当前生效检测区域 (Regions):</span>
+      <div id="regionPillsContainer" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span class="region-toggle-pill enabled" data-region-id="0" title="Region 0: 跨国流媒体平台">跨国平台 (0)</span>
+        <span class="region-toggle-pill enabled" data-region-id="11" title="Region 11: AI 对话与大模型平台">AI 平台 (11)</span>
+        <span class="region-toggle-pill" data-region-id="1" title="Region 1: 台湾平台">台湾 (1)</span>
+        <span class="region-toggle-pill" data-region-id="2" title="Region 2: 香港平台">香港 (2)</span>
+        <span class="region-toggle-pill" data-region-id="3" title="Region 3: 日本平台">日本 (3)</span>
+        <span class="region-toggle-pill" data-region-id="5" title="Region 5: 北美平台">北美 (5)</span>
+      </div>
     </div>
 
     <div class="matrix-toolbar">
@@ -625,7 +626,7 @@
   <script>
     // 定义已知全量服务字典与其归属的 Region ID 与分类
     // 当用户未在设置中开启某 region 时，该 region 的服务将根本不会作为列生成
-    const ALL_SERVICES_CATALOG = [
+    let ALL_SERVICES_CATALOG = [
       // 跨国流媒体 (Region 0: Globe)
       { id: "netflix", name: "Netflix", regionId: "0", cat: "globe", catName: "跨国平台" },
       { id: "disney", name: "Disney+", regionId: "0", cat: "globe", catName: "跨国平台" },
@@ -1313,6 +1314,79 @@
     let searchQuery = "";
     let isProbing = false;
 
+    
+    function getRegionDisplayName(key, id) {
+      const map = {
+        "0": "跨国平台",
+        "globe": "跨国平台",
+        "1": "台湾专区",
+        "taiwan": "台湾专区",
+        "2": "香港专区",
+        "hongkong": "香港专区",
+        "3": "日本专区",
+        "japan": "日本专区",
+        "4": "韩国专区",
+        "korea": "韩国专区",
+        "5": "北美专区",
+        "northamerica": "北美专区",
+        "6": "南美专区",
+        "southamerica": "南美专区",
+        "7": "欧洲专区",
+        "europe": "欧洲专区",
+        "8": "非洲专区",
+        "africa": "非洲专区",
+        "9": "东南亚专区",
+        "southeastasia": "东南亚专区",
+        "10": "大洋洲专区",
+        "oceania": "大洋洲专区",
+        "11": "AI 矩阵",
+        "ai": "AI 矩阵"
+      };
+      const k = String(key || id || "").toLowerCase();
+      return map[k] || map[String(id)] || key || "其它专区";
+    }
+
+    function renderRegionBar(catalog) {
+      const container = document.getElementById("regionPillsContainer");
+      if (!container) return;
+
+      // 提取在当前节点数据或后台配置中存在的区域集合
+      const detectedRegionIds = new Set();
+      activeRegions.forEach(r => detectedRegionIds.add(String(r)));
+      ALL_SERVICES_CATALOG.forEach(s => {
+        if (s.regionId) detectedRegionIds.add(String(s.regionId));
+      });
+
+      if (detectedRegionIds.size === 0) return;
+
+      let pillsHtml = "";
+      detectedRegionIds.forEach(rid => {
+        const isEnabled = activeRegions.has(rid);
+        const nameZh = getRegionDisplayName(null, rid);
+        pillsHtml += `<span class="region-toggle-pill ${isEnabled ? 'enabled' : ''}" data-region-id="${rid}" title="点击过滤此区域的列展示">${nameZh} (${rid})</span>`;
+      });
+
+      container.innerHTML = pillsHtml;
+
+      container.querySelectorAll(".region-toggle-pill[data-region-id]").forEach(pill => {
+        pill.addEventListener("click", () => {
+          const rid = pill.getAttribute("data-region-id");
+          if (activeRegions.has(rid)) {
+            if (activeRegions.size === 1) {
+              showToast("⚠️ 请至少保留一个选中的区域");
+              return;
+            }
+            activeRegions.delete(rid);
+            pill.classList.remove("enabled");
+          } else {
+            activeRegions.add(rid);
+            pill.classList.add("enabled");
+          }
+          renderMatrix();
+        });
+      });
+    }
+
     // 核心函数：根据用户设置中开启的 Region，动态获取应生成在表格中的服务列
     function getAvailableServices() {
       return ALL_SERVICES_CATALOG.filter(svc => activeRegions.has(svc.regionId));
@@ -1720,12 +1794,13 @@
 
                   // 自动发现新服务并加入字典
                   if (!allServiceSet.has(svcId)) {
+                    const rKey = svc.regionKey || "globe";
                     allServiceSet.set(svcId, {
                       id: svcId,
                       name: svc.displayName || svc.name,
-                      regionId: svc.regionId || "0",
-                      cat: svc.regionKey ? svc.regionKey.toLowerCase() : "globe",
-                      catName: svc.regionKey || "跨国平台"
+                      regionId: String(svc.regionId || "0"),
+                      cat: rKey.toLowerCase(),
+                      catName: getRegionDisplayName(rKey, svc.regionId)
                     });
                   }
                 });
@@ -1738,13 +1813,14 @@
               NODES.length = 0;
               liveNodes.forEach(n => NODES.push(n));
 
-              // 动态扩充服务字典
-              allServiceSet.forEach((svcObj, sid) => {
-                const existing = ALL_SERVICES_CATALOG.find(s => s.id === sid);
-                if (!existing) {
-                  ALL_SERVICES_CATALOG.push(svcObj);
-                }
-              });
+              // 关键修复：当从后端获取到真实测试数据时，服务列 100% 完全采用后端解析出的真实服务列表！
+              // 彻底抛弃 mock 预定义字典，杜绝出现两套同名服务（如一套全-、一套有结果）的列重复 Bug
+              if (allServiceSet.size > 0) {
+                ALL_SERVICES_CATALOG = Array.from(allServiceSet.values());
+              }
+
+              // 动态更新区域栏的显示与交互
+              renderRegionBar(snap.regionsCatalog || []);
 
               renderMatrix();
             }
