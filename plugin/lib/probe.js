@@ -124,7 +124,7 @@ function buildRemoteCommand(normalizedCfg) {
     'fi',
     '# [NAT 小内存 VPS 保护]: 检测内存，小于 360MB 时自适应降低并发为 5 并限制单线程，防止 OOM 报错 (如 US.VMISS)',
     'CONC="' + normalizedCfg.concurrency + '"',
-    'mem_kb=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2}')',
+    "mem_kb=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2}')",
     'if [ -n "$mem_kb" ] && [ "$mem_kb" -lt 360000 ]; then',
     '  export GOMAXPROCS=1',
     '  CONC=5',
