@@ -53,6 +53,237 @@
 
   const STORAGE_KEY = "komari_unlock_test_widget_v1";
 
+  const THEME_FONT_STEPS = [13, 14, 16, 18, 20];
+  let themeSyncTimer = null;
+  let themeObserver = null;
+
+  function parseRgbColor(value) {
+    const match = String(value || "").match(/rgba?\(([^)]+)\)/i);
+    if (!match) return null;
+    const parts = match[1].replace(/\//g, " ").trim().split(/[\s,]+/).filter(Boolean);
+    if (parts.length < 3) return null;
+    const channel = function (part) {
+      const number = parseFloat(part);
+      return part.indexOf("%") >= 0 ? number * 2.55 : number;
+    };
+    return {
+      r: channel(parts[0]),
+      g: channel(parts[1]),
+      b: channel(parts[2]),
+      a: parts[3] === undefined ? 1 : (parts[3].indexOf("%") >= 0 ? parseFloat(parts[3]) / 100 : parseFloat(parts[3]))
+    };
+  }
+
+  function isUsableColor(value) {
+    const color = parseRgbColor(value);
+    return Boolean(color && color.a > 0.08);
+  }
+
+  function isDarkColor(value) {
+    const color = parseRgbColor(value);
+    if (!color) return false;
+    const linear = [color.r, color.g, color.b].map(function (channel) {
+      const normalized = Math.max(0, Math.min(255, channel)) / 255;
+      return normalized <= 0.04045 ? normalized / 12.92 : Math.pow((normalized + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2] < 0.42;
+  }
+
+  function isPluginElement(element) {
+    return Boolean(element && (element.id === "km-unlock-floating-root" ||
+      element.id === "km-ul-about-modal" || element.id === "km-ul-debug-modal" ||
+      (element.closest && element.closest("#km-unlock-floating-root, #km-ul-about-modal, #km-ul-debug-modal"))));
+  }
+
+  function visibleThemeElement(selectors) {
+    const elements = document.querySelectorAll(selectors);
+    for (let i = 0; i < elements.length; i++) {
+      const element = elements[i];
+      if (isPluginElement(element)) continue;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      if (style.display === "none" || style.visibility === "hidden" || rect.width < 2 || rect.height < 2) continue;
+      return element;
+    }
+    return null;
+  }
+
+  function sampleBackground(element, fallback) {
+    if (!element) return fallback;
+    const color = window.getComputedStyle(element).backgroundColor;
+    return isUsableColor(color) ? color : fallback;
+  }
+
+  function samplePageBackdrop(body, html) {
+    const fallback = sampleBackground(body, sampleBackground(html, "#111827"));
+    const selectors = [
+      ".background-container .background-image", ".default-background", ".bp-root",
+      "main", "[role='main']", "#app", "#root", "body", "html"
+    ];
+    for (let i = 0; i < selectors.length; i++) {
+      const element = visibleThemeElement(selectors[i]);
+      if (!element) continue;
+      const style = window.getComputedStyle(element);
+      const image = style.backgroundImage || "none";
+      if (!isUsableColor(style.backgroundColor) && image === "none") continue;
+      return {
+        color: isUsableColor(style.backgroundColor) ? style.backgroundColor : fallback,
+        image: image,
+        size: style.backgroundSize || "auto",
+        position: style.backgroundPosition || "0% 0%",
+        repeat: style.backgroundRepeat || "repeat"
+      };
+    }
+    return { color: fallback, image: "none", size: "auto", position: "0% 0%", repeat: "repeat" };
+  }
+
+  function sampleThemeAccent() {
+    const candidate = visibleThemeElement(
+      'button[class*="primary"], a[class*="primary"], button[class*="accent"], a[class*="accent"], [data-variant="default"], [role="tab"][aria-selected="true"]'
+    );
+    if (candidate) {
+      const style = window.getComputedStyle(candidate);
+      if (isUsableColor(style.backgroundColor)) return style.backgroundColor;
+      if (style.color && style.color !== window.getComputedStyle(document.body).color) return style.color;
+    }
+    const link = visibleThemeElement("a[href]");
+    if (link) {
+      const color = window.getComputedStyle(link).color;
+      if (isUsableColor(color) && color !== window.getComputedStyle(document.body).color) return color;
+    }
+    return "#06b6d4";
+  }
+
+  function collectThemeStyles() {
+    const body = document.body;
+    const html = document.documentElement;
+    if (!body || !html) return null;
+
+    const bodyStyle = window.getComputedStyle(body);
+    const htmlStyle = window.getComputedStyle(html);
+    const pageBackdrop = samplePageBackdrop(body, html);
+    const card = visibleThemeElement(
+      ".node-card, .km-node-card, .km-instance-server-item, [data-node-uuid], [data-uuid], article"
+    );
+    const cardStyle = card ? window.getComputedStyle(card) : null;
+    const pageSurface = pageBackdrop.color;
+    const cardSurface = sampleBackground(card, pageSurface);
+    const textColor = cardStyle && isUsableColor(cardStyle.color) ? cardStyle.color : bodyStyle.color;
+    const mutedElement = visibleThemeElement("[class*='muted'], [class*='secondary'], small, p");
+    const mutedColor = mutedElement ? window.getComputedStyle(mutedElement).color : "";
+    const borderColor = cardStyle && isUsableColor(cardStyle.borderTopColor) ? cardStyle.borderTopColor : "";
+    const borderWidthValue = cardStyle ? parseFloat(cardStyle.borderTopWidth) : NaN;
+    const borderWidth = Number.isFinite(borderWidthValue) ? Math.max(0.5, Math.min(3, borderWidthValue)) : 1;
+    const borderStyle = cardStyle && /^(solid|dashed|dotted|double|groove|ridge|inset|outset)$/.test(cardStyle.borderTopStyle)
+      ? cardStyle.borderTopStyle : "solid";
+    const radiusText = cardStyle ? cardStyle.borderTopLeftRadius : "";
+    const radius = Math.max(6, Math.min(20, parseFloat(radiusText) || 12));
+    const rootClasses = (html.className && String(html.className) || "") + " " + (body.className && String(body.className) || "");
+    const themeHint = ((html.getAttribute("data-theme") || "") + " " + (body.getAttribute("data-theme") || "") + " " + rootClasses).toLowerCase();
+    const explicitDark = /(^|[\s_-])(dark|night)([\s_-]|$)/.test(themeHint) ||
+      htmlStyle.colorScheme === "dark" || bodyStyle.colorScheme === "dark";
+    const explicitLight = /(^|[\s_-])(light|day)([\s_-]|$)/.test(themeHint) ||
+      htmlStyle.colorScheme === "light" || bodyStyle.colorScheme === "light";
+    const dark = explicitDark || (!explicitLight && isDarkColor(pageSurface));
+    const pageFontSize = parseFloat(bodyStyle.fontSize) || parseFloat(htmlStyle.fontSize) || 16;
+    const fontScale = Math.max(0.875, Math.min(1.25, pageFontSize / 16));
+    const codeElement = visibleThemeElement("code, pre, kbd, samp");
+    const monoFont = codeElement ? window.getComputedStyle(codeElement).fontFamily : "ui-monospace, SFMono-Regular, Menlo, monospace";
+    const shadow = cardStyle && cardStyle.boxShadow !== "none" ? cardStyle.boxShadow : "0 18px 44px rgba(15, 23, 42, 0.24)";
+    const accent = sampleThemeAccent();
+
+    return {
+      dark: dark,
+      fontFamily: bodyStyle.fontFamily || htmlStyle.fontFamily || "system-ui, sans-serif",
+      monoFont: monoFont,
+      pageSurface: pageSurface,
+      pageImage: pageBackdrop.image,
+      pageImageSize: pageBackdrop.size,
+      pageImagePosition: pageBackdrop.position,
+      pageImageRepeat: pageBackdrop.repeat,
+      cardSurface: cardSurface,
+      cardImage: cardStyle && cardStyle.backgroundImage || "none",
+      cardImageSize: cardStyle && cardStyle.backgroundSize || "auto",
+      cardImagePosition: cardStyle && cardStyle.backgroundPosition || "0% 0%",
+      cardImageRepeat: cardStyle && cardStyle.backgroundRepeat || "repeat",
+      textColor: textColor || (dark ? "#f8fafc" : "#172033"),
+      mutedColor: isUsableColor(mutedColor) && mutedColor !== textColor ? mutedColor : (dark ? "#aab6c8" : "#667085"),
+      borderColor: borderColor || (dark ? "rgba(255, 255, 255, 0.18)" : "rgba(15, 23, 42, 0.16)"),
+      borderWidth: borderWidth + "px",
+      borderStyle: borderStyle,
+      accent: accent,
+      accentText: dark ? "#a5f3fc" : "#0369a1",
+      successText: dark ? "#34d399" : "#047857",
+      dangerText: dark ? "#f87171" : "#b42318",
+      radius: radius + "px",
+      shadow: shadow,
+      fontScale: fontScale
+    };
+  }
+
+  function applyThemeStyles() {
+    const root = document.getElementById("km-unlock-floating-root");
+    if (!root) return;
+    const theme = collectThemeStyles();
+    if (!theme) return;
+    const signature = JSON.stringify(theme);
+    if (root.getAttribute("data-km-ul-theme-signature") === signature) return;
+
+    const variables = {
+      "--km-ul-bg": theme.pageSurface,
+      "--km-ul-bg-image": theme.pageImage,
+      "--km-ul-bg-size": theme.pageImageSize,
+      "--km-ul-bg-position": theme.pageImagePosition,
+      "--km-ul-bg-repeat": theme.pageImageRepeat,
+      "--km-ul-panel": theme.pageSurface,
+      "--km-ul-card": theme.cardSurface,
+      "--km-ul-card-image": theme.cardImage,
+      "--km-ul-card-image-size": theme.cardImageSize,
+      "--km-ul-card-image-position": theme.cardImagePosition,
+      "--km-ul-card-image-repeat": theme.cardImageRepeat,
+      "--km-ul-card-hover": theme.cardSurface,
+      "--km-ul-border": theme.borderColor,
+      "--km-ul-border-width": theme.borderWidth,
+      "--km-ul-border-style": theme.borderStyle,
+      "--km-ul-text": theme.textColor,
+      "--km-ul-muted": theme.mutedColor,
+      "--km-ul-cyan": theme.accent,
+      "--km-ul-accent-text": theme.accentText,
+      "--km-ul-accent-hover": theme.dark ? "#e0f2fe" : "#075985",
+      "--km-ul-green-text": theme.successText,
+      "--km-ul-red-text": theme.dangerText,
+      "--km-ul-sans": theme.fontFamily,
+      "--km-ul-mono": theme.monoFont,
+      "--km-ul-radius": theme.radius,
+      "--km-ul-shadow": theme.shadow,
+      "--km-ul-font-scale": String(theme.fontScale),
+      "--km-ul-footer-bg": "transparent",
+      "--km-ul-modal-bg": theme.cardSurface,
+      "--km-ul-debug-bg": theme.pageSurface,
+      "--km-ul-logo-bg": "transparent"
+    };
+    THEME_FONT_STEPS.forEach(function (size) {
+      const scaled = Math.max(11, Math.min(25, size * theme.fontScale));
+      variables["--km-ul-font-" + size] = scaled.toFixed(2) + "px";
+    });
+
+    const targets = [root].concat(Array.from(document.querySelectorAll("#km-ul-about-modal, #km-ul-debug-modal")));
+    targets.forEach(function (target) {
+      Object.keys(variables).forEach(function (name) { target.style.setProperty(name, variables[name]); });
+      target.setAttribute("data-km-ul-theme", theme.dark ? "dark" : "light");
+      target.style.colorScheme = theme.dark ? "dark" : "light";
+    });
+    root.setAttribute("data-km-ul-theme-signature", signature);
+  }
+
+  function scheduleThemeSync() {
+    if (themeSyncTimer) clearTimeout(themeSyncTimer);
+    themeSyncTimer = setTimeout(function () {
+      themeSyncTimer = null;
+      applyThemeStyles();
+    }, 90);
+  }
+
   const I18N = {
     "zh-CN": {
       title: "流媒体与 AI 解锁",
@@ -448,7 +679,7 @@
       "  </div>",
       "</div>",
       '<div class="km-ul-body">',
-      '  <div class="km-ul-toolbar" style="margin:-14px -14px 12px -14px;">',
+      '  <div class="km-ul-toolbar">',
       '    <select class="km-ul-node-select" id="km-ul-node-select"></select>',
       "  </div>",
       '  <div id="km-ul-grid-container"></div>',
@@ -499,6 +730,7 @@
 
     bindWidgetEvents(root, aboutModal, debugModal);
     initDraggable(root, document.getElementById("km-ul-drag-handle"), document.getElementById("km-ul-min-icon"));
+    applyThemeStyles();
   }
 
   function updateMinimizedIconState() {
@@ -1048,15 +1280,42 @@
     fetchNodesAndSnapshot();
 
     const observer = new MutationObserver(function (mutations) {
-      const root = document.getElementById("km-unlock-floating-root");
+      let pageChanged = false;
+      let themeChanged = false;
+      const themeElements = "style, link[rel='stylesheet'], .background-container, .default-background, .background-image, .bp-root, main, .node-card, .km-node-card";
       for (let i = 0; i < mutations.length; i++) {
-        if (!root || !root.contains(mutations[i].target)) {
-          schedulePageSync();
+        if (isPluginElement(mutations[i].target)) continue;
+        pageChanged = true;
+        const changedNodes = Array.from(mutations[i].addedNodes || []).concat(Array.from(mutations[i].removedNodes || []));
+        for (let j = 0; j < changedNodes.length; j++) {
+          const node = changedNodes[j];
+          if (node.nodeType === 1 && !isPluginElement(node) &&
+              ((node.matches && node.matches(themeElements)) || (node.querySelector && node.querySelector(themeElements)))) {
+            themeChanged = true;
+            break;
+          }
+        }
+      }
+      if (pageChanged) schedulePageSync();
+      if (themeChanged) scheduleThemeSync();
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+
+    themeObserver = new MutationObserver(function (mutations) {
+      for (let i = 0; i < mutations.length; i++) {
+        if (!isPluginElement(mutations[i].target)) {
+          scheduleThemeSync();
           break;
         }
       }
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
+    themeObserver.observe(document.body, { attributes: true, subtree: true, attributeFilter: ["class", "style", "data-theme"] });
+    if (window.matchMedia) {
+      const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      if (colorSchemeQuery.addEventListener) colorSchemeQuery.addEventListener("change", scheduleThemeSync);
+      else if (colorSchemeQuery.addListener) colorSchemeQuery.addListener(scheduleThemeSync);
+    }
 
     setInterval(function () {
       const root = document.getElementById("km-unlock-floating-root");

@@ -31,7 +31,8 @@
   - **轻量微交互**：前台右下角常驻 48×48 极简科技感图标，点击平滑居中展开精美的流媒体与 AI 解锁卡片。
   - **自由拖拽与位置记忆**：支持触控与鼠标平滑拖拽停靠，松手后自动记忆摆放位置（本地持久化），页面刷新不跑偏。
   - **单节点详情自动聚焦**：访问实例详情页（`/instance/:uuid`）时，浮窗自动聚焦展示当前节点指标；首页则支持下拉菜单随心切换。
-  - **双栈模式一键过滤**：面板提供 `ALL / IPv4 / IPv6` 单独筛选，搭配高清服务矢量 Logo 与解锁状态光圈，直观悦目。
+  - **本地品牌图标与状态展示**：优先显示随插件打包的服务品牌 SVG；无合适品牌资源时显示自绘图标或名称徽章，并明确标注仅 IPv6 解锁状态。
+  - **跟随当前主题**：从宿主页面读取字体、颜色、背景、卡片和边框等样式，随明暗模式变化更新；不同主题的最终效果以实际页面为准。
   - **后台自动免打扰**：进入后台管理、解锁矩阵或终端页面时自动静默隐藏，严格仅在前台页面展示。
 - 🌍 **12 大区域及主流平台全覆盖**：
   - **跨国平台 (Globe)**：Netflix, Disney+, YouTube Premium, TikTok, Spotify, Amazon Prime Video, Apple, Steam, Bilibili, Reddit, X 等。
@@ -89,11 +90,13 @@ chmod +x build.sh
 ```
 打包脚本将自动递增末位版本号，并于 `dist/` 目录下生成 `unlock-test.zip`，同时自动同步最新 SHA-256 校验码至 `v1.json`。
 
+图标与插件一同打包，页面运行时不向第三方图标服务发起请求。每个品牌图标的固定来源见 [图标来源清单](plugin/assets/icon-sources.csv)，授权与品牌权利说明见 [第三方图标说明](plugin/assets/THIRD_PARTY_NOTICES.txt)。浮窗按完整测试输出中的服务名称精确匹配，避免相似名称被误认成其他平台。当前的主题外观跟随工作已完成，后续不计划增加逐主题节点注入。
+
 ---
 
 ## 📄 开源许可证
 
-本项目基于 [MIT License](https://github.com/livingfree2023/Komari-Plugin-UnlockTest/blob/main/LICENSE) 协议开源。
+本项目代码基于 [MIT License](https://github.com/livingfree2023/Komari-Plugin-UnlockTest/blob/main/LICENSE) 协议开源。随包附带的第三方品牌图标适用各自的授权和品牌使用限制，详见[第三方图标说明](plugin/assets/THIRD_PARTY_NOTICES.txt)。
 
 ---
 

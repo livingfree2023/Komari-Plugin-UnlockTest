@@ -126,6 +126,7 @@ function load() {
   // 6. 注入 Komari 首页可拖动解锁浮层静态资源
   const headFragment = '<link rel="stylesheet" href="/api/plugin/unlock-test/assets/widget.css" />';
   const bodyFragment =
+    '<script src="/api/plugin/unlock-test/assets/brand-icons.js" defer></script>' +
     '<script src="/api/plugin/unlock-test/assets/logos.js" defer></script>' +
     '<script src="/api/plugin/unlock-test/assets/widget.js" defer></script>';
   server.injectHTML(headFragment, bodyFragment);

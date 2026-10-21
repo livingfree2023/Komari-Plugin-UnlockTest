@@ -1,0 +1,19 @@
+Bundled service icon notices
+============================
+
+The SVGs in brand-icons.js are copies of upstream brand icons, adapted for local
+bundling and theme contrast. The original file, pinned commit, Git blob SHA and
+brand color for each icon are listed in icon-sources.csv in this directory.
+Brand names and logos remain the property of their respective owners. Inclusion
+here does not imply endorsement by any brand or upstream icon project.
+
+Simple Icons: https://github.com/simple-icons/simple-icons
+Icons are distributed by the project under CC0 1.0; see licenses/CC0-1.0.txt.
+Individual brand rights and use restrictions may still apply. See the upstream
+disclaimer: https://github.com/simple-icons/simple-icons/blob/develop/DISCLAIMER.md
+
+Lobe Icons: https://github.com/lobehub/lobe-icons
+MIT license; see licenses/Lobe-Icons-MIT.txt.
+
+Dashboard Icons: https://github.com/homarr-labs/dashboard-icons
+Apache License 2.0; see licenses/Dashboard-Icons-Apache-2.0.txt.

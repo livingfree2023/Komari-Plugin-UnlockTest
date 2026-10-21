@@ -1,12 +1,22 @@
 /* plugin/assets/widget.css */
-/* Komari UnlockTest 首页可拖动浮层样式 — 大字号高对比度终端风 (正文 >= 16px) */
+/* Komari UnlockTest 浮层样式；颜色、字体与字号按当前页面主题同步。 */
 
 #km-unlock-floating-root {
   --km-ul-bg: rgba(15, 23, 42, 0.96);
+  --km-ul-bg-image: none;
+  --km-ul-bg-size: auto;
+  --km-ul-bg-position: 0% 0%;
+  --km-ul-bg-repeat: repeat;
   --km-ul-panel: #111827;
   --km-ul-card: #1e293b;
+  --km-ul-card-image: none;
+  --km-ul-card-image-size: auto;
+  --km-ul-card-image-position: 0% 0%;
+  --km-ul-card-image-repeat: repeat;
   --km-ul-card-hover: #263449;
   --km-ul-border: #334155;
+  --km-ul-border-width: 1px;
+  --km-ul-border-style: solid;
   --km-ul-text: #f8fafc;
   --km-ul-muted: #94a3b8;
   --km-ul-green: #10b981;
@@ -14,6 +24,18 @@
   --km-ul-red: #ef4444;
   --km-ul-red-glow: rgba(239, 68, 68, 0.22);
   --km-ul-cyan: #06b6d4;
+  --km-ul-accent-text: #67e8f9;
+  --km-ul-accent-hover: #a5f3fc;
+  --km-ul-accent-soft: rgba(6, 182, 212, 0.2);
+  --km-ul-accent-soft: color-mix(in srgb, var(--km-ul-cyan) 18%, transparent);
+  --km-ul-green-text: #34d399;
+  --km-ul-red-text: #f87171;
+  --km-ul-radius: 16px;
+  --km-ul-shadow: 0 22px 54px rgba(0, 0, 0, 0.42);
+  --km-ul-footer-bg: rgba(9, 13, 22, 0.88);
+  --km-ul-modal-bg: #111827;
+  --km-ul-debug-bg: #050811;
+  --km-ul-logo-bg: rgba(9, 13, 22, 0.72);
   --km-ul-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
   --km-ul-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -22,15 +44,19 @@
   bottom: 28px;
   width: 440px;
   max-width: calc(100vw - 20px);
-  background: var(--km-ul-bg);
+  background-color: var(--km-ul-bg);
+  background-image: var(--km-ul-bg-image);
+  background-size: var(--km-ul-bg-size);
+  background-position: var(--km-ul-bg-position);
+  background-repeat: var(--km-ul-bg-repeat);
   color: var(--km-ul-text);
-  border: 1px solid var(--km-ul-border);
-  border-radius: 16px;
-  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  border: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-border);
+  border-radius: var(--km-ul-radius);
+  box-shadow: var(--km-ul-shadow);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   font-family: var(--km-ul-sans);
-  font-size: 16px;
+  font-size: var(--km-ul-font-16, 16px);
   line-height: 1.45;
   z-index: 9990;
   user-select: none;
@@ -61,12 +87,12 @@
   max-width: 48px !important;
   min-height: 48px !important;
   max-height: 48px !important;
-  border-radius: 12px !important;
+  border-radius: var(--km-ul-radius) !important;
   padding: 0 !important;
   margin: 0 !important;
-  background: linear-gradient(135deg, #090d16 0%, #1e293b 100%) !important;
-  border: 2px solid var(--km-ul-cyan) !important;
-  box-shadow: 0 10px 28px rgba(6, 182, 212, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  background: linear-gradient(135deg, var(--km-ul-panel), var(--km-ul-card)) !important;
+  border: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-cyan) !important;
+  box-shadow: var(--km-ul-shadow) !important;
   cursor: pointer !important;
   display: flex !important;
   flex-direction: row !important;
@@ -76,8 +102,8 @@
 
 #km-unlock-floating-root.km-ul-minimized:hover {
   transform: scale(1.1);
-  box-shadow: 0 14px 34px rgba(6, 182, 212, 0.65), 0 0 14px rgba(6, 182, 212, 0.5) !important;
-  border-color: #67e8f9 !important;
+  box-shadow: var(--km-ul-shadow) !important;
+  border-color: var(--km-ul-accent-text) !important;
 }
 
 /* 最小化状态下隐藏面板的所有子容器 */
@@ -114,7 +140,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  border: 1.5px solid #090d16;
+  border: 1.5px solid var(--km-ul-panel);
   background: var(--km-ul-green);
   box-shadow: 0 0 6px var(--km-ul-green);
 }
@@ -153,8 +179,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: rgba(30, 41, 59, 0.92);
-  border-bottom: 1px solid var(--km-ul-border);
+  background: transparent;
+  border-bottom: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-border);
   cursor: grab;
   flex-shrink: 0;
 }
@@ -168,7 +194,7 @@
   align-items: center;
   gap: 8px;
   font-family: var(--km-ul-mono);
-  font-size: 16px;
+  font-size: var(--km-ul-font-16, 16px);
   font-weight: 700;
   color: var(--km-ul-text);
   white-space: nowrap;
@@ -178,7 +204,7 @@
 
 .km-ul-drag-grip {
   color: var(--km-ul-cyan);
-  font-size: 18px;
+  font-size: var(--km-ul-font-18, 18px);
   line-height: 1;
 }
 
@@ -194,7 +220,7 @@
   border: 1px solid transparent;
   color: var(--km-ul-muted);
   font-family: var(--km-ul-mono);
-  font-size: 14px;
+  font-size: var(--km-ul-font-14, 14px);
   font-weight: 600;
   padding: 4px 8px;
   border-radius: 6px;
@@ -204,13 +230,13 @@
 
 .km-ul-icon-btn:hover {
   color: var(--km-ul-text);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--km-ul-card-hover);
   border-color: var(--km-ul-border);
 }
 
 .km-ul-body {
   width: 100%;
-  padding: 12px 14px;
+  padding: 16px 14px 12px;
   max-height: 410px;
   overflow-y: auto;
   flex: 1 1 auto;
@@ -224,7 +250,7 @@
   gap: 8px;
   padding-bottom: 10px;
   margin-bottom: 12px;
-  border-bottom: 1px solid rgba(51, 65, 85, 0.65);
+  border-bottom: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-border);
 }
 
 .km-ul-node-select {
@@ -232,10 +258,10 @@
   min-width: 0;
   background: var(--km-ul-card);
   color: var(--km-ul-text);
-  border: 1px solid var(--km-ul-border);
+  border: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-border);
   border-radius: 8px;
   padding: 6px 10px;
-  font-size: 16px;
+  font-size: var(--km-ul-font-16, 16px);
   font-family: var(--km-ul-mono);
   outline: none;
   cursor: pointer;
@@ -255,18 +281,18 @@
   padding: 5px 9px;
   border-radius: 6px;
   font-family: var(--km-ul-mono);
-  font-size: 13px;
+  font-size: var(--km-ul-font-13, 13px);
   font-weight: 600;
   background: var(--km-ul-card);
   color: var(--km-ul-muted);
-  border: 1px solid var(--km-ul-border);
+  border: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-border);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .km-ul-ip-pill.active {
-  background: rgba(6, 182, 212, 0.2);
-  color: #67e8f9;
+  background: var(--km-ul-accent-soft);
+  color: var(--km-ul-accent-text);
   border-color: var(--km-ul-cyan);
 }
 
@@ -282,16 +308,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 6px 6px;
-  border-radius: 12px;
-  background: var(--km-ul-card);
-  border: 2px solid var(--km-ul-border);
+  border-radius: var(--km-ul-radius);
+  background-color: var(--km-ul-card);
+  background-image: var(--km-ul-card-image);
+  background-size: var(--km-ul-card-image-size);
+  background-position: var(--km-ul-card-image-position);
+  background-repeat: var(--km-ul-card-image-repeat);
+  border: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-border);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   position: relative;
 }
 
 .km-ul-service-card:hover {
   transform: translateY(-2px);
-  background: var(--km-ul-card-hover);
+  background-color: var(--km-ul-card-hover);
 }
 
 /* 可解锁服务：绿色边框 */
@@ -314,7 +344,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(9, 13, 22, 0.72);
+  background: var(--km-ul-logo-bg);
+  color: var(--km-ul-text);
   margin-bottom: 4px;
 }
 
@@ -323,8 +354,16 @@
   height: 24px;
 }
 
+.km-ul-logo-box .km-ul-native-icon {
+  color: var(--km-ul-native-light, var(--km-ul-text));
+}
+
+#km-unlock-floating-root[data-km-ul-theme="dark"] .km-ul-logo-box .km-ul-native-icon {
+  color: var(--km-ul-native-dark, var(--km-ul-text));
+}
+
 .km-ul-service-name {
-  font-size: 16px;
+  font-size: var(--km-ul-font-16, 16px);
   color: var(--km-ul-text);
   font-weight: 600;
   text-align: center;
@@ -338,7 +377,7 @@
 .km-ul-region-sub {
   margin-top: 3px;
   font-family: var(--km-ul-mono);
-  font-size: 16px;
+  font-size: var(--km-ul-font-16, 16px);
   font-weight: 700;
   letter-spacing: 0.04em;
   padding: 1px 6px;
@@ -348,19 +387,19 @@
 
 .km-ul-service-card.unlocked .km-ul-region-sub {
   background: rgba(16, 185, 129, 0.18);
-  color: #34d399;
+  color: var(--km-ul-green-text);
 }
 
 .km-ul-service-card.locked .km-ul-region-sub {
   background: rgba(239, 68, 68, 0.18);
-  color: #f87171;
+  color: var(--km-ul-red-text);
 }
 
 .km-ul-empty-state {
   padding: 20px 12px;
   text-align: center;
   color: var(--km-ul-muted);
-  font-size: 16px;
+  font-size: var(--km-ul-font-16, 16px);
   line-height: 1.6;
 }
 
@@ -371,10 +410,10 @@
   justify-content: space-between;
   gap: 8px;
   padding: 9px 14px;
-  border-top: 1px solid rgba(51, 65, 85, 0.65);
-  background: rgba(9, 13, 22, 0.88);
+  border-top: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-border);
+  background: var(--km-ul-footer-bg);
   font-family: var(--km-ul-mono);
-  font-size: 13px;
+  font-size: var(--km-ul-font-13, 13px);
   color: var(--km-ul-muted);
   flex-shrink: 0;
 }
@@ -388,23 +427,23 @@
 .km-ul-link-btn {
   background: none;
   border: none;
-  color: #67e8f9;
+  color: var(--km-ul-accent-text);
   font-family: var(--km-ul-mono);
-  font-size: 13px;
+  font-size: var(--km-ul-font-13, 13px);
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
 }
 
 .km-ul-link-btn:hover {
-  color: #a5f3fc;
+  color: var(--km-ul-accent-hover);
 }
 
 /* 诊断/调试与关于弹窗样式 */
 .km-ul-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.78);
+  background: color-mix(in srgb, var(--km-ul-text) 38%, transparent);
   display: none;
   align-items: center;
   justify-content: center;
@@ -417,49 +456,49 @@
 }
 
 .km-ul-modal-card {
-  background: #111827;
-  color: #f8fafc;
-  border: 1px solid #334155;
-  border-radius: 14px;
+  background: var(--km-ul-modal-bg);
+  color: var(--km-ul-text);
+  border: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-border);
+  border-radius: var(--km-ul-radius);
   max-width: 600px;
   width: 100%;
   max-height: 85vh;
   overflow-y: auto;
   padding: 22px;
   font-family: var(--km-ul-sans);
-  font-size: 16px;
+  font-size: var(--km-ul-font-16, 16px);
   line-height: 1.55;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+  box-shadow: var(--km-ul-shadow);
 }
 
 .km-ul-modal-card h3 {
   margin: 0 0 12px 0;
-  font-size: 20px;
+  font-size: var(--km-ul-font-20, 20px);
 }
 
 .km-ul-modal-card p {
   margin: 0 0 10px 0;
-  color: #cbd5e1;
-  font-size: 16px;
+  color: var(--km-ul-muted);
+  font-size: var(--km-ul-font-16, 16px);
 }
 
 .km-ul-modal-card code {
   font-family: var(--km-ul-mono);
-  color: #67e8f9;
-  font-size: 14px;
-  background: rgba(15, 23, 42, 0.6);
+  color: var(--km-ul-accent-text);
+  font-size: var(--km-ul-font-14, 14px);
+  background: var(--km-ul-panel);
   padding: 2px 6px;
   border-radius: 4px;
 }
 
 .km-ul-debug-terminal {
-  background: #050811;
-  border: 1px solid #334155;
+  background: var(--km-ul-debug-bg);
+  border: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-border);
   border-radius: 8px;
   padding: 12px;
   font-family: var(--km-ul-mono);
-  font-size: 13px;
-  color: #34d399;
+  font-size: var(--km-ul-font-13, 13px);
+  color: var(--km-ul-green-text);
   max-height: 220px;
   overflow-y: auto;
   white-space: pre-wrap;
@@ -502,7 +541,7 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 2px solid #06b6d4;
+  border: 2px solid var(--km-ul-cyan);
   opacity: 0.8;
   animation: km-ul-wave-expand 2s infinite cubic-bezier(0.25, 1, 0.5, 1);
 }
@@ -516,15 +555,15 @@
 .km-ul-probing-radar-core {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #06b6d4, #0284c7);
+  background: linear-gradient(135deg, var(--km-ul-cyan), var(--km-ul-accent-hover));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 18px;
+  font-size: var(--km-ul-font-18, 18px);
   z-index: 2;
-  box-shadow: 0 0 16px rgba(6, 182, 212, 0.7);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--km-ul-cyan) 70%, transparent);
 }
 
 @keyframes km-ul-wave-expand {
@@ -533,22 +572,22 @@
 }
 
 .km-ul-probing-title {
-  font-size: 16px;
+  font-size: var(--km-ul-font-16, 16px);
   font-weight: 600;
-  color: #67e8f9;
+  color: var(--km-ul-accent-text);
   margin-bottom: 6px;
 }
 
 .km-ul-probing-sub {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: var(--km-ul-font-13, 13px);
+  color: var(--km-ul-muted);
   margin-bottom: 16px;
 }
 
 .km-ul-probing-bar {
   width: 220px;
   height: 4px;
-  background: rgba(51, 65, 85, 0.6);
+  background: var(--km-ul-card-hover);
   border-radius: 999px;
   overflow: hidden;
   position: relative;
@@ -557,7 +596,7 @@
 .km-ul-probing-bar-fill {
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, #06b6d4, #10b981);
+  background: linear-gradient(90deg, var(--km-ul-cyan), var(--km-ul-green));
   border-radius: 999px;
   animation: km-ul-bar-slide 1.5s infinite ease-in-out;
 }
@@ -572,8 +611,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #06b6d4;
-  box-shadow: 0 0 8px #06b6d4;
+  background: var(--km-ul-cyan);
+  box-shadow: 0 0 8px var(--km-ul-cyan);
   margin-right: 6px;
   animation: km-ul-pulse 1.2s infinite ease-in-out;
 }
@@ -582,10 +621,10 @@
 .km-ul-warn-banner {
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.45);
-  color: #fca5a5;
+  color: var(--km-ul-red-text);
   border-radius: 8px;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: var(--km-ul-font-13, 13px);
   line-height: 1.45;
   margin-bottom: 12px;
   display: flex;
