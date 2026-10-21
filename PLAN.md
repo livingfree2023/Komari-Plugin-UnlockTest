@@ -1,7 +1,7 @@
 # UnlockTest 维护状态与交接记录
 
 > 更新：2026-10-20（America/Los_Angeles）
-> 当前工作：v26.1020.7 正式发布；主题适配和图标本地化已由用户验收。
+> 当前状态：v26.1020.7 已正式发布；主题适配和图标本地化已由用户验收。
 
 ## 已确定的产品范围
 
@@ -19,18 +19,18 @@
 | 本地品牌图标 | 已完成，用户验收通过 | `plugin/assets/brand-icons.js`；来源见 `plugin/assets/icon-sources.csv`，许可见 `plugin/assets/THIRD_PARTY_NOTICES.txt` |
 | 完整服务清单回归 | 已通过 | 从用户完整输出仅提取 163 个不同服务名，存于 `tests/fixtures/service-names.json`；不保存节点地址或检测结果 |
 | 仓库清理 | 已完成 | 已删除停止的主题研究资料与未采用原型，保留 `agent.md`、`agent_general.md` 本地忽略文件 |
-| 本地测试包 | 已构建，用户验收通过 | `26.1020.7`，`dist/unlock-test.zip`；清单 SHA-256 与本地包一致 |
+| 正式安装包 | 已发布 | `v26.1020.7`，`dist/unlock-test.zip` 已同步为 GitHub Release 附件；清单 SHA-256 与附件一致 |
 
 ## 后续交接
 
-1. 本次发布 `v26.1020.7`：提交双语发布说明，推送代码及标签，核对 Release 附件和插件源索引。
+1. [v26.1020.7 Release](https://github.com/livingfree2023/Komari-Plugin-UnlockTest/releases/tag/v26.1020.7) 已发布，双语说明和 `unlock-test.zip` 附件齐全；自动发布流程成功，`v1.json` 已由发布机器人更新。官方包 SHA-256 为 `19a018aa5a5e6cb5bbce1d5b197f7e7261d17a406bc4f47cee4c245b2a5b0bbf`。
 2. 后续若有具体误配或低对比图标，记录服务名与截图，修复后重新构建递增版本。
 
 ## 验证记录
 
 - `node --test tests/probe.test.js tests/logos.test.js`：34 项通过。163 个不同服务名中，57 个映射到 49 个打包品牌资源，8 个使用特定自绘 SVG，98 个使用名称徽章。
 - 全部 `plugin/` 与 `tests/` JavaScript 语法检查、49 个 SVG XML 与本地引用检查、`git diff --check` 通过。
-- `tests/widget-browser.cjs` 未在本机运行：缺少 Playwright 包；用户此前已实测主题外观跟随，新增图标仍待测试包视觉验收。
+- `tests/widget-browser.cjs` 未在本机运行：缺少 Playwright 包；用户已确认 26.1020.7 测试包在实际 Komari 上的效果。
 
 ## 交接注意
 
