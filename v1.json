@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-21T11:32:51.000Z",
+  "updated_at": "2026-10-21T14:40:27.000Z",
   "plugins": [
     {
       "name": {
@@ -12,12 +12,12 @@
         "zh_CN": "基于 MediaUnlockTest 探测各 VPS 节点的流媒体与 AI 平台解锁状态，提供后台解锁矩阵全景大表与首页悬浮卡片。",
         "en": "Probe VPS media and AI unlock status via MediaUnlockTest, providing an admin unlock matrix table and homepage floating widget."
       },
-      "version": "26.1021.4",
+      "version": "26.1021.5",
       "author": "livingfree2023",
       "komari": ">=1.0.5",
       "url": "https://github.com/livingfree2023/Komari-Plugin-UnlockTest",
-      "download": "https://github.com/livingfree2023/Komari-Plugin-UnlockTest/releases/download/v26.1021.4/unlock-test.zip",
-      "sha256": "46dd8ef04a94e097948d86c1ea8cc663a78c99318d4d31410fe30da33a6c8b39"
+      "download": "https://github.com/livingfree2023/Komari-Plugin-UnlockTest/releases/download/v26.1021.5/unlock-test.zip",
+      "sha256": "b4f6e939921f1fc6e366beb86b25e8cb0b49ba68d7486d9e6d038d31548a0213"
     }
   ]
 }

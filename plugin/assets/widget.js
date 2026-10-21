@@ -790,11 +790,13 @@
     updateMinimizedIconState();
   }
 
-  window.addEventListener("km:floating-card-open", function (e) {
-    if (e.detail && e.detail.sourceId !== "unlock-test" && isOpen) {
-      closeCard();
-    }
-  });
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+    window.addEventListener("km:floating-card-open", function (e) {
+      if (e.detail && e.detail.sourceId !== "unlock-test" && isOpen) {
+        closeCard();
+      }
+    });
+  }
 
   function closeCard() {
     isOpen = false;
