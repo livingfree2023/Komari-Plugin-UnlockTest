@@ -94,6 +94,35 @@ chmod +x build.sh
 
 ---
 
+## 前台浮窗界面尽可能和主题匹配，目前支持任意主题（个别特别骚的主题可能有点小bug），图标原生化了57个常见服务
+
+![image](https://cdn.nodeimage.com/i/Dp0RyQtxT1V9kLTasmBdIUHAsHYTxeeG.png)
+
+![image](https://cdn.nodeimage.com/i/hADEjkqdQR1lwU0yMTJbLH8U1fGniBvt.png)
+
+![image](https://cdn.nodeimage.com/i/MPLlvx2ePro2dloJkPCaraXiYcP7e2xG.png)
+
+![image](https://cdn.nodeimage.com/i/QkzF103fOc6idTACGHttEG1zCAbMw4OW.png)
+
+![image](https://cdn.nodeimage.com/i/yJGUgPfvSna4KzxvJt5Y5LpZFCZXsoZN.png)
+
+**首次安装需要启用一下**
+
+
+## ⚙️ 常用配置说明
+
+![image](https://cdn.nodeimage.com/i/Z5UkrEjEybgqeowWoQJD1SHC2FllkzpW.png)
+
+![image](https://cdn.nodeimage.com/i/I0KgOlzp0zq23T18Zt4djFm6A98wyxZB.png)
+
+![image](https://cdn.nodeimage.com/i/X0ezz9JdtIV2UxbuD8WT2egA5hSqE5Jx.png)
+
+
+
+
+---
+
+
 ## 📄 开源许可证
 
 本项目代码基于 [MIT License](https://github.com/livingfree2023/Komari-Plugin-UnlockTest/blob/main/LICENSE) 协议开源。随包附带的第三方品牌图标适用各自的授权和品牌使用限制，详见[第三方图标说明](plugin/assets/THIRD_PARTY_NOTICES.txt)。
