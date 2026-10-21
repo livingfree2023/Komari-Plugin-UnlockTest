@@ -10,7 +10,5 @@ node_modules/
 komari-agent/
 
 # Personal guidelines and retired handover notes
-/agent_general.md
-/HANDOVER_IMPLEMENTATION_SUMMARY.md
-
-/agent.md
+/AGENTS_GENERAL.md
+/AGENTS.md

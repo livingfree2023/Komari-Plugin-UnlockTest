@@ -31,7 +31,7 @@
   --km-ul-green-text: #34d399;
   --km-ul-red-text: #f87171;
   --km-ul-radius: 16px;
-  --km-ul-shadow: 0 22px 54px rgba(0, 0, 0, 0.42);
+  --km-ul-shadow: 8px 16px 36px rgba(0, 0, 0, 0.55), 2px 4px 10px rgba(0, 0, 0, 0.35);
   --km-ul-footer-bg: rgba(9, 13, 22, 0.88);
   --km-ul-modal-bg: #111827;
   --km-ul-debug-bg: #050811;
@@ -40,10 +40,12 @@
   --km-ul-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   position: fixed;
-  right: 24px;
-  bottom: 28px;
+  z-index: 100000 !important;
   width: 440px;
+  min-width: 320px;
+  min-height: 220px;
   max-width: calc(100vw - 20px);
+  max-height: calc(100vh - 20px);
   background-color: var(--km-ul-bg);
   background-image: var(--km-ul-bg-image);
   background-size: var(--km-ul-bg-size);
@@ -58,79 +60,84 @@
   font-family: var(--km-ul-sans);
   font-size: var(--km-ul-font-16, 16px);
   line-height: 1.45;
-  z-index: 9990;
   user-select: none;
   overflow: hidden;
+  resize: both;
 
-  /* 展开状态下必须纵向排列 (flex-direction: column)，绝对不能横排 */
-  display: flex !important;
+  /* 默认隐藏，打开时以 flex 纵向显现 */
+  display: none !important;
   flex-direction: column !important;
   align-items: stretch !important;
   justify-content: flex-start !important;
+}
 
-  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-              height 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.15s ease,
-              box-shadow 0.2s ease,
-              border-radius 0.22s ease;
+#km-unlock-floating-root.km-ul-open {
+  display: flex !important;
+  animation: kmUlSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes kmUlSlideUp {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 #km-unlock-floating-root * {
   box-sizing: border-box;
 }
 
-/* 核心优化 1：缩小到 48px 方形 SVG 格式悬浮图标 */
-#km-unlock-floating-root.km-ul-minimized {
+/* 核心组件 1：48px 几何方形悬浮小按钮 (始终在屏幕可见，支持平滑拖拽停靠与位置记忆) */
+.km-ul-trigger-btn,
+#km-ul-min-icon {
   width: 48px !important;
   height: 48px !important;
   min-width: 48px !important;
   max-width: 48px !important;
   min-height: 48px !important;
   max-height: 48px !important;
-  border-radius: var(--km-ul-radius) !important;
+  position: fixed !important;
+  border-radius: var(--km-ul-radius, 12px) !important;
   padding: 0 !important;
   margin: 0 !important;
-  background: linear-gradient(135deg, var(--km-ul-panel), var(--km-ul-card)) !important;
-  border: var(--km-ul-border-width) var(--km-ul-border-style) var(--km-ul-cyan) !important;
-  box-shadow: var(--km-ul-shadow) !important;
-  cursor: pointer !important;
+  background: var(--km-ul-card, #1e293b) !important;
+  border: 1px solid var(--km-ul-border, rgba(255, 255, 255, 0.12)) !important;
+  box-shadow: 
+    4px 6px 18px rgba(0, 0, 0, 0.45),
+    1px 2px 4px rgba(0, 0, 0, 0.25) !important;
+  cursor: grab !important;
   display: flex !important;
-  flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;
+  color: var(--km-ul-text, #cbd5e1) !important;
+  z-index: 99990 !important;
+  user-select: none !important;
+  touch-action: none !important;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s !important;
 }
 
-#km-unlock-floating-root.km-ul-minimized:hover {
-  transform: scale(1.1);
-  box-shadow: var(--km-ul-shadow) !important;
-  border-color: var(--km-ul-accent-text) !important;
+.km-ul-trigger-btn:hover,
+#km-ul-min-icon:hover {
+  transform: translate(-1px, -1px) scale(1.04) !important;
+  box-shadow: 
+    6px 10px 24px rgba(0, 0, 0, 0.55),
+    2px 3px 6px rgba(0, 0, 0, 0.3) !important;
+  border-color: var(--km-ul-border, rgba(255, 255, 255, 0.2)) !important;
 }
 
-/* 最小化状态下隐藏面板的所有子容器 */
-#km-unlock-floating-root.km-ul-minimized .km-ul-header,
-#km-unlock-floating-root.km-ul-minimized .km-ul-body,
-#km-unlock-floating-root.km-ul-minimized .km-ul-footer {
-  display: none !important;
+.km-ul-trigger-btn:active,
+#km-ul-min-icon:active {
+  cursor: grabbing !important;
+  transform: scale(0.96) !important;
 }
 
-/* 48px 方形图标容器与内部 SVG */
-.km-ul-minimized-icon-box {
-  display: none;
-  width: 48px;
-  height: 48px;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-}
-
-#km-unlock-floating-root.km-ul-minimized .km-ul-minimized-icon-box {
-  display: flex;
+.km-ul-trigger-btn *,
+#km-ul-min-icon * {
+  pointer-events: none !important;
 }
 
 .km-ul-minimized-svg {
-  width: 32px;
-  height: 32px;
-  display: block;
+  width: 22px !important;
+  height: 22px !important;
+  display: block !important;
 }
 
 .km-ul-minimized-badge-dot {
@@ -170,6 +177,30 @@
     transform: scale(1.4);
     opacity: 0.5;
   }
+}
+
+/* 核心组件 2：右下角尺寸调整手柄 (Corner Resize Grip) */
+.km-ul-resize-grip {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--km-ul-muted);
+  cursor: se-resize;
+  z-index: 20;
+  opacity: 0.45;
+  pointer-events: auto;
+  touch-action: none;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.km-ul-resize-grip:hover {
+  opacity: 1;
+  color: var(--km-ul-cyan);
 }
 
 /* 展开状态面板：必须是完整的垂直结构 */
@@ -237,9 +268,9 @@
 .km-ul-body {
   width: 100%;
   padding: 16px 14px 12px;
-  max-height: 410px;
   overflow-y: auto;
   flex: 1 1 auto;
+  min-height: 0;
 }
 
 .km-ul-toolbar {
@@ -447,7 +478,7 @@
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 10005;
+  z-index: 100010 !important;
   padding: 18px;
 }
 

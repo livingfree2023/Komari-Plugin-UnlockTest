@@ -91,8 +91,9 @@
 
   function isPluginElement(element) {
     return Boolean(element && (element.id === "km-unlock-floating-root" ||
+      element.id === "km-ul-min-icon" ||
       element.id === "km-ul-about-modal" || element.id === "km-ul-debug-modal" ||
-      (element.closest && element.closest("#km-unlock-floating-root, #km-ul-about-modal, #km-ul-debug-modal"))));
+      (element.closest && element.closest("#km-unlock-floating-root, #km-ul-min-icon, #km-ul-about-modal, #km-ul-debug-modal"))));
   }
 
   function visibleThemeElement(selectors) {
@@ -267,7 +268,8 @@
       variables["--km-ul-font-" + size] = scaled.toFixed(2) + "px";
     });
 
-    const targets = [root].concat(Array.from(document.querySelectorAll("#km-ul-about-modal, #km-ul-debug-modal")));
+    const minIcon = document.getElementById("km-ul-min-icon");
+    const targets = [root, minIcon].filter(Boolean).concat(Array.from(document.querySelectorAll("#km-ul-about-modal, #km-ul-debug-modal")));
     targets.forEach(function (target) {
       Object.keys(variables).forEach(function (name) { target.style.setProperty(name, variables[name]); });
       target.setAttribute("data-km-ul-theme", theme.dark ? "dark" : "light");
@@ -307,33 +309,28 @@
 
   };
 
-  // 48px 方形 SVG 格式图标：融合流媒体信号、解锁挂锁与 AI 矩阵神经元
+  // 48px 方形小按钮内部极简线构图标：与 NetForecast 对齐设计风格 (22x22 单色线构)
   const MINIMIZED_SVG_ICON = [
-    '<svg class="km-ul-minimized-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">',
-    '  <rect x="1.5" y="1.5" width="45" height="45" rx="12" fill="url(#km-ul-bg-grad)" stroke="#06b6d4" stroke-width="2"/>',
+    '<svg class="km-ul-minimized-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
     '  <!-- 开启的挂锁锁梁 (Unlocked Shackle) -->',
-    '  <path d="M16 19V13C16 8.58 19.58 5 24 5C28.42 5 32 8.58 32 13V15" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>',
+    '  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>',
     '  <!-- 锁体 (Padlock Body) -->',
-    '  <rect x="11" y="18" width="26" height="23" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>',
-    '  <!-- 流媒体播放三角徽章 (Streaming Media Play Indicator) -->',
-    '  <path d="M21 24.5L29 29.5L21 34.5V24.5Z" fill="#10b981"/>',
-    '  <!-- AI 矩阵星芒 (AI Sparkle) -->',
-    '  <path d="M33 17L33.9 19.8L37 20.7L33.9 21.6L33 24.5L32.1 21.6L29 20.7L32.1 19.8L33 17Z" fill="#38bdf8"/>',
-    '  <!-- 渐变底色定义 -->',
-    '  <defs>',
-    '    <linearGradient id="km-ul-bg-grad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">',
-    '      <stop offset="0%" stop-color="#090d16"/>',
-    '      <stop offset="100%" stop-color="#1e293b"/>',
-    '    </linearGradient>',
-    '  </defs>',
+    '  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>',
+    '  <!-- 锁芯中心微标 (Lock Core Dot) -->',
+    '  <circle cx="12" cy="16" r="1.5" fill="currentColor"></circle>',
     '</svg>'
   ].join("\n");
 
   let prefs = {
     selectedNode: "",
     minimized: false,
-    pos: null
+    iconPos: null,
+    cardSize: null
   };
+
+  let isOpen = false;
+  let minIconEl = null;
+  let cardEl = null;
 
   let allNodes = [];          // 来自 /api/nodes 的全量可见节点列表
   let pageVisibleNodes = [];  // 与当前页面（分组筛选或详情页）同步后的下拉列表节点
@@ -638,35 +635,214 @@
   }
 
   // ========= UI 挂载与渲染 =========
+  // ========= 浮窗位置计算与展开收起引擎 =========
+  function getOtherFabs(myEl, myId) {
+    const list = [];
+    const all = document.querySelectorAll("[data-km-fab='true'], .nf-trigger-sq, .km-ul-trigger-btn");
+    for (let i = 0; i < all.length; i++) {
+      const el = all[i];
+      if (el === myEl || !el.isConnected) continue;
+      const fabId = el.getAttribute("data-km-fab-id");
+      if (fabId && fabId === myId) continue;
+      const style = window.getComputedStyle(el);
+      if (style.display === "none" || style.visibility === "hidden") continue;
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        list.push(el);
+      }
+    }
+    return list;
+  }
+
+  function isFabColliding(r1, r2) {
+    return Math.abs(r1.left - r2.left) < 52 && Math.abs(r1.top - r2.top) < 52;
+  }
+
+  function resolveFabPosition(desiredL, desiredT, myEl, myId) {
+    let l = desiredL;
+    let t = desiredT;
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
+    const others = getOtherFabs(myEl, myId);
+
+    let attempts = 0;
+    let collided = true;
+    while (collided && attempts < 8) {
+      collided = false;
+      for (let i = 0; i < others.length; i++) {
+        const other = others[i];
+        const oRect = other.getBoundingClientRect();
+        if (isFabColliding({ left: l, top: t }, oRect)) {
+          collided = true;
+          t -= 60;
+          if (t < 24) {
+            t = oRect.bottom + 12;
+          }
+          break;
+        }
+      }
+      attempts++;
+    }
+    return {
+      left: Math.max(10, Math.min(winW - 58, l)),
+      top: Math.max(10, Math.min(winH - 58, t))
+    };
+  }
+
+  function loadSavedButtonPos() {
+    if (!minIconEl) return;
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
+    let targetL = null;
+    let targetT = null;
+
+    try {
+      if (prefs.iconPos && prefs.iconPos.left && prefs.iconPos.top) {
+        const pLeft = parseFloat(prefs.iconPos.left);
+        const pTop = parseFloat(prefs.iconPos.top);
+        if (!isNaN(pLeft) && !isNaN(pTop)) {
+          targetL = pLeft;
+          targetT = pTop;
+        }
+      }
+    } catch (_) {}
+
+    if (targetL === null || targetT === null) {
+      const others = getOtherFabs(minIconEl, "unlock-test");
+      const slotIndex = others.length;
+      const margin = 24;
+      const slotPitch = 60;
+      targetL = winW - 48 - margin;
+      targetT = winH - 48 - (margin + slotIndex * slotPitch);
+      if (targetT < margin) {
+        targetT = winH - 48 - margin;
+      }
+    }
+
+    const safePos = resolveFabPosition(targetL, targetT, minIconEl, "unlock-test");
+    minIconEl.style.setProperty("left", safePos.left + "px", "important");
+    minIconEl.style.setProperty("top", safePos.top + "px", "important");
+    minIconEl.style.setProperty("right", "auto", "important");
+    minIconEl.style.setProperty("bottom", "auto", "important");
+  }
+
+  function positionCard() {
+    if (!cardEl || !minIconEl) return;
+    const bRect = minIconEl.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // 1. 卡片宽度
+    const savedW = (prefs.cardSize && prefs.cardSize.width) || 440;
+    const cardW = Math.max(300, Math.min(vw - 28, savedW));
+    cardEl.style.setProperty("width", cardW + "px", "important");
+
+    // 2. 纵向可用高度与上下方向判定（以小按钮为 anchor）
+    const below = bRect.top <= vh / 2;
+    const availableH = below ? (vh - bRect.bottom - 24) : (bRect.top - 24);
+    const maxH = Math.max(200, Math.min(vh * 0.88, availableH));
+    cardEl.style.setProperty("max-height", maxH + "px", "important");
+
+    // 3. 卡片高度（支持记忆与自适应）
+    if (prefs.cardSize && prefs.cardSize.height) {
+      const cardH = Math.max(180, Math.min(maxH, prefs.cardSize.height));
+      cardEl.style.setProperty("height", cardH + "px", "important");
+    } else {
+      cardEl.style.removeProperty("height");
+    }
+
+    // 4. 水平定位（以小按钮为 anchor 并防止视口溢出）
+    let cardLeft;
+    if (bRect.left > vw / 2) {
+      cardLeft = bRect.right - cardW;
+    } else {
+      cardLeft = bRect.left;
+    }
+    cardLeft = Math.max(14, Math.min(vw - cardW - 14, cardLeft));
+    cardEl.style.setProperty("left", cardLeft + "px", "important");
+    cardEl.style.setProperty("right", "auto", "important");
+
+    // 5. 垂直定位（以小按钮为 anchor）
+    if (below) {
+      const t = Math.max(12, bRect.bottom + 10);
+      cardEl.style.setProperty("top", t + "px", "important");
+      cardEl.style.setProperty("bottom", "auto", "important");
+    } else {
+      const b = Math.max(12, vh - bRect.top + 10);
+      cardEl.style.setProperty("bottom", b + "px", "important");
+      cardEl.style.setProperty("top", "auto", "important");
+    }
+  }
+
+  function openCard() {
+    isOpen = true;
+    prefs.minimized = false;
+    savePrefs();
+    try {
+      window.dispatchEvent(new CustomEvent("km:floating-card-open", { detail: { sourceId: "unlock-test" } }));
+    } catch (_) {}
+    if (cardEl) {
+      cardEl.style.setProperty("display", "flex", "important");
+      cardEl.classList.add("km-ul-open");
+      positionCard();
+    }
+    renderServiceLogos();
+    updateMinimizedIconState();
+  }
+
+  window.addEventListener("km:floating-card-open", function (e) {
+    if (e.detail && e.detail.sourceId !== "unlock-test" && isOpen) {
+      closeCard();
+    }
+  });
+
+  function closeCard() {
+    isOpen = false;
+    prefs.minimized = true;
+    savePrefs();
+    if (cardEl) {
+      cardEl.style.setProperty("display", "none", "important");
+      cardEl.classList.remove("km-ul-open");
+    }
+  }
+
+  function toggle() {
+    if (isOpen) {
+      closeCard();
+    } else {
+      openCard();
+    }
+  }
+
+  // ========= UI 挂载与渲染 =========
   function mountWidgetDOM() {
     if (document.getElementById("km-unlock-floating-root")) return;
 
-    const root = document.createElement("aside");
-    root.id = "km-unlock-floating-root";
-    if (prefs.minimized) {
-      root.classList.add("km-ul-minimized");
-      if (prefs.iconPos && prefs.iconPos.left && prefs.iconPos.top) {
-        root.style.left = prefs.iconPos.left;
-        root.style.top = prefs.iconPos.top;
-        root.style.right = "auto";
-        root.style.bottom = "auto";
+    // 1. 挂载始终可见的 48px 方形悬浮小按钮 (支持拖拽停靠、防堆叠与位置记忆)
+    minIconEl = document.createElement("div");
+    minIconEl.className = "km-ul-trigger-btn";
+    minIconEl.id = "km-ul-min-icon";
+    minIconEl.setAttribute("data-km-fab", "true");
+    minIconEl.setAttribute("data-km-fab-id", "unlock-test");
+    minIconEl.title = t("minimized_tooltip");
+    minIconEl.innerHTML = MINIMIZED_SVG_ICON + '<span class="km-ul-minimized-badge-dot" id="km-ul-min-badge"></span>';
+    document.body.appendChild(minIconEl);
+    loadSavedButtonPos();
+
+    setTimeout(function () {
+      if (!minIconEl) return;
+      const rect = minIconEl.getBoundingClientRect();
+      const safePos = resolveFabPosition(rect.left, rect.top, minIconEl, "unlock-test");
+      if (safePos.left !== rect.left || safePos.top !== rect.top) {
+        minIconEl.style.setProperty("left", safePos.left + "px", "important");
+        minIconEl.style.setProperty("top", safePos.top + "px", "important");
       }
-    } else {
-      root.style.left = "50%";
-      root.style.top = "50%";
-      root.style.transform = "translate(-50%, -50%)";
-      root.style.right = "auto";
-      root.style.bottom = "auto";
-    }
+    }, 350);
 
-    root.innerHTML = [
-      '<!-- 64px 方形 SVG 格式未展开悬浮图标 -->',
-      '<div class="km-ul-minimized-icon-box" id="km-ul-min-icon" title="' + t("minimized_tooltip") + '">',
-      MINIMIZED_SVG_ICON,
-      '  <span class="km-ul-minimized-badge-dot" id="km-ul-min-badge"></span>',
-      "</div>",
-
-      '<!-- 展开后的完整内容面板 -->',
+    // 2. 挂载展开面板主体 (以按钮为 anchor 计算弹出位置，支持尺寸拉伸与记忆)
+    cardEl = document.createElement("aside");
+    cardEl.id = "km-unlock-floating-root";
+    cardEl.innerHTML = [
       '<div class="km-ul-header" id="km-ul-drag-handle">',
       '  <div class="km-ul-title-wrap">',
       '    <span class="km-ul-drag-grip">⠿</span>',
@@ -675,7 +851,7 @@
       '  <div class="km-ul-header-actions">',
       '    <button class="km-ul-icon-btn" id="km-ul-probe-btn" style="display:none" title="发起后台探测">' + t("trigger_probe") + "</button>",
       '    <button class="km-ul-icon-btn" id="km-ul-matrix-btn" title="查看全节点解锁矩阵大表">📊 解锁矩阵</button>',
-      '    <button class="km-ul-icon-btn" id="km-ul-min-btn" title="收起浮窗">—</button>',
+      '    <button class="km-ul-icon-btn" id="km-ul-min-btn" title="收起浮窗">✕</button>',
       "  </div>",
       "</div>",
       '<div class="km-ul-body">',
@@ -690,12 +866,14 @@
       '    <button class="km-ul-link-btn" id="km-ul-debug-btn">' + t("debug_btn") + "</button>",
       '    <button class="km-ul-link-btn" id="km-ul-about-btn">' + t("about") + "</button>",
       "  </div>",
+      '  <div class="km-ul-resize-grip" id="km-ul-resize-grip" title="拖动调整大小">',
+      '    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 2L2 10M11 6L6 11M11 10L10 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+      '  </div>',
       "</div>"
     ].join("\n");
+    document.body.appendChild(cardEl);
 
-    document.body.appendChild(root);
-
-    // 关于弹窗 (About Modal)
+    // 3. 关于弹窗 (About Modal)
     const aboutModal = document.createElement("div");
     aboutModal.className = "km-ul-modal-backdrop";
     aboutModal.id = "km-ul-about-modal";
@@ -712,7 +890,7 @@
     ].join("\n");
     document.body.appendChild(aboutModal);
 
-    // 诊断与调试信息弹窗 (Diagnostics & Debug Modal)
+    // 4. 诊断与调试信息弹窗 (Diagnostics & Debug Modal)
     const debugModal = document.createElement("div");
     debugModal.className = "km-ul-modal-backdrop";
     debugModal.id = "km-ul-debug-modal";
@@ -728,8 +906,17 @@
     ].join("\n");
     document.body.appendChild(debugModal);
 
-    bindWidgetEvents(root, aboutModal, debugModal);
-    initDraggable(root, document.getElementById("km-ul-drag-handle"), document.getElementById("km-ul-min-icon"));
+    bindWidgetEvents(cardEl, minIconEl, aboutModal, debugModal);
+    initButtonDraggable(minIconEl);
+    initCardDraggable(cardEl, document.getElementById("km-ul-drag-handle"));
+    initResizable(cardEl, document.getElementById("km-ul-resize-grip"));
+
+    if (!prefs.minimized) {
+      openCard();
+    } else {
+      closeCard();
+    }
+
     applyThemeStyles();
   }
 
@@ -760,62 +947,46 @@
     }
   }
 
-  function bindWidgetEvents(root, aboutModal, debugModal) {
+  function bindWidgetEvents(root, minIcon, aboutModal, debugModal) {
     const selectEl = document.getElementById("km-ul-node-select");
-    selectEl.addEventListener("change", function () {
-      prefs.selectedNode = selectEl.value;
-      savePrefs();
-      renderServiceLogos();
-      updateMinimizedIconState();
-    });
-
-    // 展开/折叠切换
-    function setMinimized(minimized) {
-      prefs.minimized = minimized;
-      savePrefs();
-      root.classList.toggle("km-ul-minimized", prefs.minimized);
-      root.style.width = "";
-      root.style.height = "";
-
-      if (!minimized) {
-        // 核心优化 5：点击图标展开时，无论 icon 位于屏幕何处，窗口永远在屏幕正中间展开，杜绝跑出屏幕
-        root.style.left = "50%";
-        root.style.top = "50%";
-        root.style.transform = "translate(-50%, -50%)";
-        root.style.right = "auto";
-        root.style.bottom = "auto";
-      } else {
-        // 折叠为 48px 图标：恢复图标位置并清除居中 translate
-        root.style.transform = "";
-        if (prefs.iconPos && prefs.iconPos.left && prefs.iconPos.top) {
-          root.style.left = prefs.iconPos.left;
-          root.style.top = prefs.iconPos.top;
-          root.style.right = "auto";
-          root.style.bottom = "auto";
-        } else {
-          root.style.right = "24px";
-          root.style.bottom = "28px";
-          root.style.left = "auto";
-          root.style.top = "auto";
-        }
-      }
-
-      updateMinimizedIconState();
+    if (selectEl) {
+      selectEl.addEventListener("change", function () {
+        prefs.selectedNode = selectEl.value;
+        savePrefs();
+        renderServiceLogos();
+        updateMinimizedIconState();
+      });
     }
 
-    // 点击 64px 悬浮图标展开
-    const minIcon = document.getElementById("km-ul-min-icon");
-    minIcon.addEventListener("click", function (e) {
-      if (root.getAttribute("data-dragged") === "yes") {
-        root.removeAttribute("data-dragged");
-        return;
-      }
-      setMinimized(false);
+    // 点击右上角关闭按钮
+    const minBtn = document.getElementById("km-ul-min-btn");
+    if (minBtn) {
+      minBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeCard();
+      });
+    }
+
+    // 窗口尺寸变化动态保持 anchor 对齐
+    window.addEventListener("resize", function () {
+      if (isOpen) positionCard();
     });
 
-    // 点击展开面板右上角最小化按钮收缩到 64px
-    document.getElementById("km-ul-min-btn").addEventListener("click", function () {
-      setMinimized(true);
+    // 点击外部空白区域自动关闭
+    document.addEventListener("pointerdown", function (e) {
+      if (!isOpen) return;
+      if (root && root.contains(e.target)) return;
+      if (minIcon && minIcon.contains(e.target)) return;
+      if (aboutModal && aboutModal.contains(e.target)) return;
+      if (debugModal && debugModal.contains(e.target)) return;
+      closeCard();
+    });
+
+    // ESC 键关闭
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && isOpen) {
+        closeCard();
+      }
     });
 
     const matrixBtn = document.getElementById("km-ul-matrix-btn");
@@ -1197,76 +1368,187 @@
     statEl.title = dataError || nodeSnap.error || "";
   }
 
-  function initDraggable(widget, handle, minHandle) {
-    if (!widget) return;
-    let dragging = false;
-    let startX = 0, startY = 0, origLeft = 0, origTop = 0;
-    let totalMoved = 0;
+  function initButtonDraggable(btn) {
+    if (!btn) return;
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let origL = 0, origT = 0;
 
-    function startDrag(clientX, clientY, target) {
-      if (target && target.closest("button, select, a")) return;
-      dragging = true;
-      totalMoved = 0;
-      const rect = widget.getBoundingClientRect();
-      widget.style.transform = ""; // 清除居中 transform，平滑切换为绝对像素定位
-      widget.style.left = rect.left + "px";
-      widget.style.top = rect.top + "px";
-      widget.style.right = "auto";
-      widget.style.bottom = "auto";
-      startX = clientX;
-      startY = clientY;
-      origLeft = rect.left;
-      origTop = rect.top;
-    }
+    btn.addEventListener("pointerdown", function (e) {
+      if (e.button !== 0) return;
+      btn.setPointerCapture(e.pointerId);
+      isDragging = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = btn.getBoundingClientRect();
+      origL = rect.left;
+      origT = rect.top;
+    });
 
-    function moveDrag(clientX, clientY) {
-      if (!dragging) return;
-      const dx = clientX - startX;
-      const dy = clientY - startY;
-      totalMoved = Math.abs(dx) + Math.abs(dy);
-      const maxLeft = Math.max(8, window.innerWidth - widget.offsetWidth - 8);
-      const maxTop = Math.max(8, window.innerHeight - widget.offsetHeight - 8);
-      const nextLeft = Math.max(8, Math.min(maxLeft, origLeft + dx));
-      const nextTop = Math.max(8, Math.min(maxTop, origTop + dy));
-      widget.style.left = nextLeft + "px";
-      widget.style.top = nextTop + "px";
-    }
-
-    function endDrag() {
-      if (!dragging) return;
-      dragging = false;
-      if (totalMoved > 6) {
-        widget.setAttribute("data-dragged", "yes");
-        if (widget.classList.contains("km-ul-minimized")) {
-          prefs.iconPos = { left: widget.style.left, top: widget.style.top };
-        } else {
-          prefs.pos = { left: widget.style.left, top: widget.style.top };
+    btn.addEventListener("pointermove", function (e) {
+      if (!btn.hasPointerCapture(e.pointerId)) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        isDragging = true;
+        const newL = Math.max(10, Math.min(window.innerWidth - 58, origL + dx));
+        const newT = Math.max(10, Math.min(window.innerHeight - 58, origT + dy));
+        btn.style.setProperty("left", newL + "px", "important");
+        btn.style.setProperty("top", newT + "px", "important");
+        btn.style.setProperty("right", "auto", "important");
+        btn.style.setProperty("bottom", "auto", "important");
+        if (isOpen) {
+          positionCard();
         }
-        savePrefs();
       }
+    });
+
+    btn.addEventListener("pointerup", function (e) {
+      if (!btn.hasPointerCapture(e.pointerId)) return;
+      try { btn.releasePointerCapture(e.pointerId); } catch (_) {}
+      if (isDragging) {
+        const rect = btn.getBoundingClientRect();
+        const safePos = resolveFabPosition(rect.left, rect.top, btn, "unlock-test");
+        if (safePos.left !== rect.left || safePos.top !== rect.top) {
+          btn.style.transition = "left 0.2s cubic-bezier(0.2, 0, 0, 1), top 0.2s cubic-bezier(0.2, 0, 0, 1)";
+          btn.style.setProperty("left", safePos.left + "px", "important");
+          btn.style.setProperty("top", safePos.top + "px", "important");
+          setTimeout(function () {
+            btn.style.transition = "border-color 0.25s, box-shadow 0.25s, transform 0.15s";
+          }, 250);
+        }
+        prefs.iconPos = { left: safePos.left + "px", top: safePos.top + "px" };
+        savePrefs();
+        if (isOpen) positionCard();
+      } else {
+        toggle();
+      }
+    });
+  }
+
+  function initCardDraggable(card, handle) {
+    if (!card || !handle) return;
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let origL = 0, origT = 0;
+
+    handle.addEventListener("pointerdown", function (e) {
+      if (e.button !== 0) return;
+      if (e.target && e.target.closest("button, select, a")) return;
+      handle.setPointerCapture(e.pointerId);
+      isDragging = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = card.getBoundingClientRect();
+      origL = rect.left;
+      origT = rect.top;
+      card.style.setProperty("bottom", "auto", "important");
+      card.style.setProperty("top", origT + "px", "important");
+      card.style.setProperty("left", origL + "px", "important");
+      card.style.setProperty("right", "auto", "important");
+    });
+
+    handle.addEventListener("pointermove", function (e) {
+      if (!handle.hasPointerCapture(e.pointerId)) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        isDragging = true;
+        const rect = card.getBoundingClientRect();
+        const maxL = Math.max(8, window.innerWidth - rect.width - 8);
+        const maxT = Math.max(8, window.innerHeight - rect.height - 8);
+        const nextL = Math.max(8, Math.min(maxL, origL + dx));
+        const nextT = Math.max(8, Math.min(maxT, origT + dy));
+        card.style.setProperty("left", nextL + "px", "important");
+        card.style.setProperty("top", nextT + "px", "important");
+      }
+    });
+
+    handle.addEventListener("pointerup", function (e) {
+      if (!handle.hasPointerCapture(e.pointerId)) return;
+      try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
+    });
+  }
+
+  function initResizable(card, grip) {
+    if (!card) return;
+
+    if (grip) {
+      let isResizing = false;
+      let startX = 0, startY = 0;
+      let startW = 0, startH = 0;
+
+      grip.addEventListener("pointerdown", function (e) {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
+        grip.setPointerCapture(e.pointerId);
+        isResizing = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = card.getBoundingClientRect();
+        startW = rect.width;
+        startH = rect.height;
+      });
+
+      grip.addEventListener("pointermove", function (e) {
+        if (!isResizing) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const isBottomAnchored = card.style.bottom && card.style.bottom !== "auto";
+
+        const minW = 320;
+        const maxW = Math.max(minW, window.innerWidth - 28);
+        const minH = 200;
+        const maxH = Math.max(minH, window.innerHeight - 28);
+
+        const newW = Math.max(minW, Math.min(maxW, startW + dx));
+        const newH = Math.max(minH, Math.min(maxH, startH + (isBottomAnchored ? -dy : dy)));
+
+        card.style.setProperty("width", newW + "px", "important");
+        card.style.setProperty("height", newH + "px", "important");
+      });
+
+      function endResize(e) {
+        if (!isResizing) return;
+        isResizing = false;
+        try { grip.releasePointerCapture(e.pointerId); } catch (_) {}
+        const rect = card.getBoundingClientRect();
+        prefs.cardSize = {
+          width: Math.round(rect.width),
+          height: Math.round(rect.height)
+        };
+        savePrefs();
+        positionCard();
+      }
+
+      grip.addEventListener("pointerup", endResize);
+      grip.addEventListener("pointercancel", endResize);
     }
 
-    if (handle) {
-      handle.addEventListener("mousedown", function (e) { startDrag(e.clientX, e.clientY, e.target); });
-      handle.addEventListener("touchstart", function (e) {
-        if (e.touches && e.touches[0]) startDrag(e.touches[0].clientX, e.touches[0].clientY, e.target);
-      }, { passive: true });
+    if (window.ResizeObserver) {
+      let roTimer = null;
+      const ro = new ResizeObserver(function (entries) {
+        if (!isOpen) return;
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
+          if (entry.target === card) {
+            clearTimeout(roTimer);
+            roTimer = setTimeout(function () {
+              const rect = card.getBoundingClientRect();
+              if (rect.width >= 250 && rect.height >= 180) {
+                prefs.cardSize = {
+                  width: Math.round(rect.width),
+                  height: Math.round(rect.height)
+                };
+                savePrefs();
+              }
+            }, 150);
+          }
+        }
+      });
+      ro.observe(card);
     }
-
-    if (minHandle) {
-      minHandle.addEventListener("mousedown", function (e) { startDrag(e.clientX, e.clientY, e.target); });
-      minHandle.addEventListener("touchstart", function (e) {
-        if (e.touches && e.touches[0]) startDrag(e.touches[0].clientX, e.touches[0].clientY, e.target);
-      }, { passive: true });
-    }
-
-    window.addEventListener("mousemove", function (e) { moveDrag(e.clientX, e.clientY); });
-    window.addEventListener("touchmove", function (e) {
-      if (dragging && e.touches && e.touches[0]) moveDrag(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-
-    window.addEventListener("mouseup", endDrag);
-    window.addEventListener("touchend", endDrag);
   }
 
   function start() {
@@ -1319,28 +1601,32 @@
 
     setInterval(function () {
       const root = document.getElementById("km-unlock-floating-root");
+      const minIcon = document.getElementById("km-ul-min-icon");
       if (isExcludedAdminRoute()) {
-        if (root) {
-          root.style.setProperty("display", "none", "important");
-          const overlay = root.querySelector(".km-unlock-floating-overlay");
-          if (overlay) overlay.style.setProperty("display", "none", "important");
-        }
+        if (root) root.style.setProperty("display", "none", "important");
+        if (minIcon) minIcon.style.setProperty("display", "none", "important");
       } else {
-        if (!root) {
+        if (!root || !minIcon) {
           mountWidgetDOM();
-        } else if (root.style.display === "none") {
-          root.style.setProperty("display", "", "");
+        } else {
+          minIcon.style.removeProperty("display");
+          if (isOpen) {
+            root.style.setProperty("display", "flex", "important");
+          } else {
+            root.style.setProperty("display", "none", "important");
+          }
         }
       }
     }, 500);
 
     async function refreshLoop() {
       const root = document.getElementById("km-unlock-floating-root");
+      const minIcon = document.getElementById("km-ul-min-icon");
       if (isExcludedAdminRoute()) {
         if (root) root.style.setProperty("display", "none", "important");
-      }
-      if (!isExcludedAdminRoute()) {
-        if (!document.getElementById("km-unlock-floating-root")) mountWidgetDOM();
+        if (minIcon) minIcon.style.setProperty("display", "none", "important");
+      } else {
+        if (!document.getElementById("km-unlock-floating-root") || !document.getElementById("km-ul-min-icon")) mountWidgetDOM();
         await fetchNodesAndSnapshot();
       }
       setTimeout(refreshLoop, snapshotData && snapshotData.activeTask ? 4000 : 20000);
