@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-21T14:40:27.000Z",
+  "updated_at": "2026-10-21T14:41:16.000Z",
   "plugins": [
     {
       "name": {
@@ -17,7 +17,7 @@
       "komari": ">=1.0.5",
       "url": "https://github.com/livingfree2023/Komari-Plugin-UnlockTest",
       "download": "https://github.com/livingfree2023/Komari-Plugin-UnlockTest/releases/download/v26.1021.5/unlock-test.zip",
-      "sha256": "b4f6e939921f1fc6e366beb86b25e8cb0b49ba68d7486d9e6d038d31548a0213"
+      "sha256": "62577d255367cbdda27fe01db22784396c8663635f8f0752d67215804df12dbe"
     }
   ]
 }
