@@ -39,12 +39,16 @@
   --km-ul-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
   --km-ul-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
+  --km-ul-min-width: 348px;
+  --km-ul-default-width: 452px;
+
   position: fixed;
   z-index: 100000 !important;
-  width: 440px;
-  min-width: 320px;
+  box-sizing: border-box;
+  width: var(--km-ul-default-width);
+  min-width: min(var(--km-ul-min-width), calc(100vw - 28px));
   min-height: 220px;
-  max-width: calc(100vw - 20px);
+  max-width: calc(100vw - 28px);
   max-height: calc(100vh - 20px);
   background-color: var(--km-ul-bg);
   background-image: var(--km-ul-bg-image);
@@ -246,17 +250,17 @@
   flex-shrink: 0;
 }
 
-.km-ul-icon-btn {
+#km-unlock-floating-root .km-ul-icon-btn {
   background: transparent;
   border: 1px solid transparent;
-  color: var(--km-ul-muted);
+  color: var(--km-ul-text);
   font-family: var(--km-ul-mono);
   font-size: var(--km-ul-font-14, 14px);
   font-weight: 600;
   padding: 4px 8px;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .km-ul-icon-btn:hover {
@@ -269,6 +273,7 @@
   width: 100%;
   padding: 16px 14px 12px;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -329,11 +334,15 @@
 
 .km-ul-logo-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, 94px);
+  justify-content: start;
   gap: 10px;
 }
 
 .km-ul-service-card {
+  width: 94px;
+  height: 108px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -394,7 +403,8 @@
 }
 
 .km-ul-service-name {
-  font-size: var(--km-ul-font-16, 16px);
+  font-family: var(--km-ul-mono);
+  font-size: 16px;
   color: var(--km-ul-text);
   font-weight: 600;
   text-align: center;
@@ -543,9 +553,6 @@
   white-space: nowrap;
 }
 #km-unlock-floating-root .km-ul-node-select { width: 100%; min-width: 0; }
-@media (max-width: 420px) {
-  #km-unlock-floating-root .km-ul-logo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
 
 /* --- 探测中流线型动效与状态 (Probing Animation) --- */
 .km-ul-probing-container {

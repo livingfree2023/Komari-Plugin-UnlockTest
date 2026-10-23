@@ -1,29 +1,45 @@
-# UnlockTest v26.1021.5
+# UnlockTest v26.1023.2
 
 ## 🇨🇳 中文更新日志
 
-### 悬浮小组件交互与视觉优化
+### 浮窗卡片布局
 
-- **Anchor 锚点弹出机制**：卡片展开时常驻 48px 几何快捷按钮，并以小按钮为 Anchor 计算弹出位置（水平自适应对齐，垂直依据上下半屏智能弹出）。
-- **前台自由拉伸与记忆**：前台悬浮窗支持自由拖拽拉伸尺寸（右下角拉伸手柄与原生拖拽），并在 `localStorage` 中持久化记忆摆放位置与窗口尺寸。
-- **层级与防遮挡碰撞检测**：优化小按钮的 z-index 层级，修复针对 `offsetParent` 的 FAB 碰撞检测与避让逻辑，防止与其他悬浮控件遮挡。
-- **环境安全与事件解耦**：监听 `km:floating-card-open` 事件自动互斥收起，加入运行环境安全检查，防止无 DOM/Node 运行环境中未定义方法异常。
+- 服务卡片统一为 **94 × 108px**，按浮窗实际宽度自动增减列数，避免窄窗挤压、宽窗拉伸。
+- 服务名称使用 16px 等宽字体，`Bilibili` 可完整显示；较长名称继续省略并保留完整悬停提示。
+- 首次展开默认宽度为 **452px，显示 4 列**；最小宽度为 **348px，显示 3 列**。屏幕宽度不足时优先保证浮窗不溢出。
+- 统一拖动缩放与尺寸恢复的宽度限制，继续记忆用户调整后的尺寸，并预留稳定的滚动条空间。
 
-### 维护与工程化
+### 主题颜色与诊断输出
 
-- 自动化测试用例全量通过（34/34 项测试通过），包含服务图标映射、指令下发、快照隔离与异常防护验证。
-- 安装包与 `v1.json` 元数据强同步，SHA-256 校验和自动更新。
+- 顶部“探测”“解锁矩阵”按钮与标题使用同一主题文字色，修复浅色皮肤下按钮文字过浅的问题，切换主题时立即同步。
+- 管理员诊断窗口显示完整标准输出，移除原先 600 字符的保存限制，并保持文本转义和滚动浏览。公开快照不包含完整输出。
+- 兼容已有的历史输出片段并提示重新探测；升级后需要重新探测才能获取完整日志，无法恢复已被截断的历史内容。
+- 两种远程执行分支均使用 `2>/dev/null` 过滤写入标准错误的进度条刷新，保留标准输出、退出码和任务日志恢复。标准错误中的其他信息也会一并丢弃。
+
+### 验证与发布
+
+- 34 项离线自动化测试、10 个 JavaScript 文件语法检查及浏览器回归通过，覆盖完整输出持久化、权限隔离、文本转义、主题切换、列数变化、真实拖动缩放与尺寸记忆。
+- 用户已安装测试并确认通过。本次直接发布已验证的 26.1023.2，不再次递增版本。
+- 本地测试包版本和 SHA-256 已核对；发布流水线产物统一写入 `dist/`，自动附加 ZIP 并回写发布包校验值。
 
 ## 🇬🇧 English Changelog
 
-### Floating Widget Interactions & Visual Polish
+### Floating Widget Layout
 
-- **Anchor-Based Popover Mechanism**: Keep the 48px floating shortcut icon persistent when the card expands, using the button as an anchor to dynamically position the popup (smart vertical alignment for upper/lower half of screen and horizontal boundary detection).
-- **Front-end Resizing & Persistent Geometry**: Allow users to interactively drag and resize the floating widget directly in the UI, persisting positions and custom dimensions to `localStorage`.
-- **Z-Index Layering & FAB Collision Detection**: Refine the floating button's z-index and collision detection against page elements using `offsetParent`, preventing overlapping with existing host UI buttons.
-- **Environment Safety & Mutual Exclusion**: Listen to `km:floating-card-open` to smoothly close inactive widgets when other plugins expand, with safe runtime environment checks for non-browser/headless execution.
+- Keep service cards at **94 × 108px** and adjust the column count to the widget's available width, preventing squeezed or stretched cards.
+- Use 16px monospace service names so `Bilibili` fits in full. Longer names retain ellipsis and full hover details.
+- Open at **452px with four columns** by default and allow resizing down to **348px with three columns**. Narrower screens prioritize keeping the widget within the viewport.
+- Apply consistent width limits during resizing and size restoration, preserve saved dimensions, and reserve stable scrollbar space.
 
-### Maintenance & Quality Assurance
+### Theme Colors and Diagnostics
 
-- All 34 automated unit and integration tests passed, covering service catalog icon mapping, command dispatch, snapshot isolation, and error boundaries.
-- Build assets and `v1.json` metadata strictly synced with computed SHA-256 integrity checksums.
+- Match the header probe and matrix buttons to the title's theme text color, fixing pale button labels on light skins and synchronizing immediately during theme changes.
+- Display complete standard output in administrator diagnostics without the previous 600-character storage limit. Keep text escaping and scrolling, and exclude raw output from public snapshots.
+- Continue displaying legacy output snippets with a prompt to run a new probe. Previously truncated content cannot be recovered.
+- Add `2>/dev/null` to both remote execution branches to suppress progress refreshes written to standard error while preserving stdout, exit codes, and task-log recovery. Other stderr messages are also discarded.
+
+### Validation and Release
+
+- Passed 34 offline automated tests, syntax checks for 10 JavaScript files, and browser regressions covering full-output persistence, access control, text escaping, theme switching, column counts, pointer resizing, and saved dimensions.
+- The user installed and approved the test package. Release the verified 26.1023.2 without another version bump.
+- Verified the local ZIP version and SHA-256. Release workflow artifacts now use `dist/`; automation attaches the ZIP and updates the published package checksum.

@@ -12,3 +12,6 @@ komari-agent/
 # Personal guidelines and retired handover notes
 /AGENTS_GENERAL.md
 /AGENTS.md
+
+# Local engineering notes
+blog/

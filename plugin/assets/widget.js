@@ -733,8 +733,12 @@
     const vh = window.innerHeight;
 
     // 1. 卡片宽度
-    const savedW = (prefs.cardSize && prefs.cardSize.width) || 440;
-    const cardW = Math.max(300, Math.min(vw - 28, savedW));
+    const cardStyle = window.getComputedStyle(cardEl);
+    const maxW = Math.max(1, vw - 28);
+    const minW = Math.min(maxW, parseFloat(cardStyle.getPropertyValue("--km-ul-min-width")) || 348);
+    const defaultW = parseFloat(cardStyle.getPropertyValue("--km-ul-default-width")) || 452;
+    const savedW = (prefs.cardSize && prefs.cardSize.width) || defaultW;
+    const cardW = Math.max(minW, Math.min(maxW, savedW));
     cardEl.style.setProperty("width", cardW + "px", "important");
 
     // 2. 纵向可用高度与上下方向判定（以小按钮为 anchor）
@@ -1190,9 +1194,13 @@
       }
       lines.push('</div>');
 
-      if (currentNode.rawOutputSnippet) {
-        lines.push('<div style="margin-top:10px;font-size:13px;color:#94a3b8;">原始终端输出片断 (Raw stdout):</div>');
-        lines.push('<div class="km-ul-debug-terminal">' + escapeHTML(currentNode.rawOutputSnippet) + '</div>');
+      const rawOutput = currentNode.rawOutput !== undefined ? currentNode.rawOutput : currentNode.rawOutputSnippet;
+      if (rawOutput) {
+        const outputLabel = currentNode.rawOutput !== undefined
+          ? "原始终端输出 (Raw stdout):"
+          : "历史输出片段（重新探测后可查看完整输出）:";
+        lines.push('<div style="margin-top:10px;font-size:13px;color:#94a3b8;">' + outputLabel + '</div>');
+        lines.push('<div class="km-ul-debug-terminal">' + escapeHTML(rawOutput) + '</div>');
       }
     }
 
@@ -1499,8 +1507,8 @@
         const dy = e.clientY - startY;
         const isBottomAnchored = card.style.bottom && card.style.bottom !== "auto";
 
-        const minW = 320;
-        const maxW = Math.max(minW, window.innerWidth - 28);
+        const maxW = Math.max(1, window.innerWidth - 28);
+        const minW = Math.min(maxW, parseFloat(window.getComputedStyle(card).getPropertyValue("--km-ul-min-width")) || 348);
         const minH = 200;
         const maxH = Math.max(minH, window.innerHeight - 28);
 

@@ -8,14 +8,15 @@ const parser=require('../plugin/lib/parser');
   const browser=await chromium.launch({headless:true,...(process.env.CHROME_BIN?{executablePath:process.env.CHROME_BIN}:{})});
   try {
     const page=await browser.newPage({viewport:{width:1280,height:900}});
+    const diagnosticOutput = '完整日志行\n'.repeat(300) + '<img src=x onerror=alert(1)>\nEND-OF-FULL-STDOUT';
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     const fixture=parser.parseUnlockTestOutput(fs.readFileSync(path.join(__dirname,'fixtures/sgoci-output.txt'),'utf8'));
-    await page.addInitScript(()=>localStorage.setItem('komari_unlock_test_widget_v1',JSON.stringify({lang:'en',ipFilter:'6'})));
+    await page.addInitScript(()=>{if(!localStorage.getItem('komari_unlock_test_widget_v1')) localStorage.setItem('komari_unlock_test_widget_v1',JSON.stringify({lang:'en',ipFilter:'6'}));});
     await page.route('**/*',async route=>{
       const u=new URL(route.request().url());
       if(u.pathname==='/api/nodes') return route.fulfill({json:{data:[{uuid:'a',name:'SG.OCI'}]}});
       if(u.pathname==='/api/me') return route.fulfill({json:{logged_in:true}});
-      if(u.pathname==='/api/plugin/unlock-test/snapshot') return route.fulfill({json:{status:'success',data:{regions:['0','11'],nodes:{a:{uuid:'a',name:'SG.OCI',services:fixture.services}},telemetry:{},activeTask:null}}});
+      if(u.pathname==='/api/plugin/unlock-test/snapshot') return route.fulfill({json:{status:'success',data:{regions:['0','11'],nodes:{a:{uuid:'a',name:'SG.OCI',services:fixture.services,rawOutput:diagnosticOutput}},telemetry:{},activeTask:null}}});
       if(u.pathname.startsWith('/assets/')) return route.fulfill({path:path.join(__dirname,'../plugin',u.pathname),contentType:u.pathname.endsWith('.css')?'text/css':'application/javascript'});
       if(u.pathname==='/') return route.fulfill({contentType:'text/html',body:'<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/assets/widget.css"><style>body{background:#f7f8fa;color:#202938;font:14px Arial,sans-serif;padding:24px}body.dark{background:#080d18;color:#ecf1f8;font:18px Georgia,serif}main{background:#eef1f5;padding:12px}body.dark main{background:#0f172a}.background-container{position:fixed;inset:0;z-index:-1}.default-background{position:absolute;inset:0;background-color:#f6f8fb;background-image:repeating-linear-gradient(90deg,rgba(29,78,137,.06) 0,rgba(29,78,137,.06) 1px,transparent 1px,transparent 12px)}body.dark .default-background{background-color:#143d72;background-image:repeating-linear-gradient(90deg,rgba(233,242,255,.06) 0,rgba(233,242,255,.06) 1px,transparent 1px,transparent 12px)}.node-card{background:#fff;color:#202938;border:1px solid #d5dbe5;border-radius:10px;box-shadow:0 5px 15px rgba(15,23,42,.12);padding:12px}body.dark .node-card{background:#1e293b;color:#f8fafc;border-color:#334155}button.primary{background:#2563eb;color:white}</style></head><body><div class="background-container"><div class="default-background"></div></div><main><h1>节点监控</h1><div class="node-card" data-uuid="a">SG.OCI</div><button class="primary">主题强调色</button></main><script src="/assets/brand-icons.js"></script><script src="/assets/logos.js"></script><script src="/assets/widget.js"></script></body></html>'});
       return route.abort();
@@ -25,6 +26,23 @@ const parser=require('../plugin/lib/parser');
     assert.equal(await page.locator('[data-ip]').count(),0);
     assert.equal(await page.locator('#km-ul-lang-btn, #km-ul-export-btn, #km-ul-import-btn, #km-ul-import-input').count(),0);
     assert.equal(await page.locator('#km-ul-title-text').innerText(),'流媒体与 AI 解锁');
+    async function checkHeaderColors() {
+      const colors=await page.locator('#km-unlock-floating-root').evaluate(el=>({
+        title:getComputedStyle(el.querySelector('#km-ul-title-text')).color,
+        buttons:['#km-ul-probe-btn','#km-ul-matrix-btn'].map(selector=>getComputedStyle(el.querySelector(selector)).color)
+      }));
+      assert.ok(colors.buttons.every(color=>color===colors.title),JSON.stringify(colors));
+    }
+    async function cardLayout() {
+      return page.locator('#km-unlock-floating-root').evaluate(el=>{
+        const grid=el.querySelector('.km-ul-logo-grid');
+        const boxes=[...grid.children].map(card=>card.getBoundingClientRect());
+        return {width:el.getBoundingClientRect().width,columns:boxes.filter(box=>box.top===boxes[0].top).length,
+          fixed:boxes.every(box=>box.width===94&&box.height===108),overflow:grid.scrollWidth>grid.clientWidth};
+      });
+    }
+    await page.waitForTimeout(300);
+    assert.deepEqual(await cardLayout(),{width:452,columns:4,fixed:true,overflow:false});
     const themeVars=()=>page.locator('#km-unlock-floating-root').evaluate(el=>{
       const style=getComputedStyle(el);
       const header=el.querySelector('.km-ul-header').getBoundingClientRect();
@@ -45,6 +63,7 @@ const parser=require('../plugin/lib/parser');
     assert.equal(lightTheme.borderWidth,'1px');
     assert.equal(lightTheme.borderStyle,'solid');
     assert.equal(lightTheme.radius,'10px');
+    await checkHeaderColors();
     await page.locator('body').evaluate(el=>el.classList.add('dark'));
     await page.waitForFunction(()=>document.querySelector('#km-unlock-floating-root')?.dataset.kmUlTheme==='dark');
     const darkTheme=await themeVars();
@@ -57,6 +76,7 @@ const parser=require('../plugin/lib/parser');
     assert.equal(darkTheme.borderWidth,'1px');
     assert.equal(darkTheme.borderStyle,'solid');
     assert.equal(darkTheme.radius,'10px');
+    await checkHeaderColors();
     await page.locator('body').evaluate(el=>el.classList.remove('dark'));
     await page.waitForFunction(()=>document.querySelector('#km-unlock-floating-root')?.dataset.kmUlTheme==='light' && getComputedStyle(document.querySelector('#km-unlock-floating-root')).getPropertyValue('--km-ul-font-16').trim()==='14.00px');
     async function label(name){return page.locator('.km-ul-service-card').filter({has:page.locator('.km-ul-service-name',{hasText:new RegExp('^'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$')})}).locator('.km-ul-region-sub').innerText();}
@@ -72,6 +92,34 @@ const parser=require('../plugin/lib/parser');
       assert.ok(await page.locator('.km-ul-service-card .km-ul-native-icon').count()>10);
       await page.screenshot({path:'/tmp/unlock-widget-'+name+'.png'});
     }
+    await page.locator('#km-ul-debug-btn').evaluate(el=>el.click());
+    assert.equal(await page.locator('#km-ul-debug-content .km-ul-debug-terminal').textContent(),diagnosticOutput);
+    assert.equal(await page.locator('#km-ul-debug-content .km-ul-debug-terminal img').count(),0);
+    assert.match(await page.locator('#km-ul-debug-content').textContent(),/原始终端输出 \(Raw stdout\)/);
+    await page.locator('#km-ul-debug-close').evaluate(el=>el.click());
+    await page.setViewportSize({width:1280,height:900});
+    await page.waitForTimeout(200);
+    for (const [width,columns] of [[348,3],[452,4],[680,6],[980,9]]) {
+      await page.locator('#km-unlock-floating-root').evaluate((el,w)=>el.style.setProperty('width',w+'px','important'),width);
+      assert.deepEqual(await cardLayout(),{width,columns,fixed:true,overflow:false});
+    }
+    await page.locator('#km-unlock-floating-root').evaluate(el=>{el.style.setProperty('width','452px','important');el.style.setProperty('left','14px','important');});
+    const grip=await page.locator('#km-ul-resize-grip').boundingBox();
+    await page.mouse.move(grip.x+grip.width/2,grip.y+grip.height/2);
+    await page.mouse.down();
+    await page.mouse.move(grip.x-1000,grip.y,{steps:5});
+    await page.mouse.up();
+    await page.waitForTimeout(250);
+    assert.deepEqual(await cardLayout(),{width:348,columns:3,fixed:true,overflow:false});
+    await page.reload();
+    await page.waitForFunction(()=>document.querySelectorAll('.km-ul-service-card').length===33);
+    await page.waitForTimeout(300);
+    assert.deepEqual(await cardLayout(),{width:348,columns:3,fixed:true,overflow:false});
+    await page.setViewportSize({width:320,height:760});
+    await page.waitForTimeout(200);
+    const narrowBox=await page.locator('#km-unlock-floating-root').boundingBox();
+    assert.ok(narrowBox.x>=0&&narrowBox.x+narrowBox.width<=320,JSON.stringify(narrowBox));
+    assert.equal((await cardLayout()).overflow,false);
     assert.deepEqual(errors,[]);
     console.log('Desktop/mobile and live light/dark theme checks passed; legacy IPv6-only preference ignored; 33 combined cards rendered.');
   } finally {await browser.close();}

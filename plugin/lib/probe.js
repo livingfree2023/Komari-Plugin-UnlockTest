@@ -161,9 +161,9 @@ function buildRemoteCommand(normalizedCfg, runId) {
     'set -- ' + baseFlags + ' -conc "$CONC"',
     'if [ -n "$BIN" ] && [ -x "$BIN" ]; then',
     '  if command -v timeout >/dev/null 2>&1; then',
-    '    timeout -k 5 240 "$BIN" "$@" </dev/null > "$LOG" 2>&1 &',
+    '    timeout -k 5 240 "$BIN" "$@" </dev/null > "$LOG" 2>/dev/null &',
     '  else',
-    '    "$BIN" "$@" </dev/null > "$LOG" 2>&1 &',
+    '    "$BIN" "$@" </dev/null > "$LOG" 2>/dev/null &',
     '  fi',
     '  child=$!',
     '  (elapsed=0; while kill -0 "$child" 2>/dev/null; do',
@@ -215,7 +215,7 @@ function createProbeManager(server) {
       regions: ["0", "11"],
       ipMode: "0",
       concurrency: 30,
-      commandPreview: "unlock-test -region 0,11 -conc 30 -show-active=false",
+      commandPreview: "unlock-test -region 0,11 -conc 30 -show-active=false 2>/dev/null",
       updatedAt: null,
       activeTask: null,
       lastTask: null,
@@ -422,7 +422,7 @@ function createProbeManager(server) {
       meta: parsed.services.length ? parsed.meta : (old.meta || {}),
       services: parsed.services.length ? parsed.services : (old.services || []),
       webSshDisabled: isWebSshDisabled,
-      error: error, rawOutputSnippet: rawText.slice(0, 600)
+      error: error, rawOutput: rawText
     };
     task.completed[uuid] = true;
     task.nodeSummary[uuid] = { finished: true, exitCode: exitCode, finishedAt: result.finished_at, error: error, webSshDisabled: isWebSshDisabled };
@@ -538,7 +538,7 @@ function createProbeManager(server) {
     snap.commandPreview = "unlock-test -region " + normalizedCfg.regionArg +
       (normalizedCfg.ipMode !== "0" ? (" -m " + normalizedCfg.ipMode) : "") +
       (normalizedCfg.concurrency > 0 ? (" -conc " + normalizedCfg.concurrency) : "") +
-      " -show-active=false";
+      " -show-active=false 2>/dev/null";
 
     const resolved = await resolveOnlineTargetNodes(normalizedCfg, opts.clients);
     if (!resolved.uuids || resolved.uuids.length === 0) {
@@ -671,7 +671,7 @@ function createProbeManager(server) {
     snap.commandPreview = "unlock-test -region " + normalizedCfg.regionArg +
       (normalizedCfg.ipMode !== "0" ? (" -m " + normalizedCfg.ipMode) : "") +
       (normalizedCfg.concurrency > 0 ? (" -conc " + normalizedCfg.concurrency) : "") +
-      " -show-active=false";
+      " -show-active=false 2>/dev/null";
     saveSnapshotToDisk(snap);
 
     log("info", "Synced plugin configuration", {
@@ -702,6 +702,7 @@ function createProbeManager(server) {
       if (!nodeData) continue;
       if (!isAdmin && (!clientMetadata || !clientMetadata[uuid] || clientMetadata[uuid].hidden)) continue;
       filteredNodes[uuid] = isAdmin ? nodeData : Object.assign({}, nodeData, {
+        rawOutput: undefined,
         rawOutputSnippet: undefined,
         meta: Object.assign({}, nodeData.meta, { ipv4: undefined, ipv6: undefined }),
         error: nodeData.error ? "Last probe failed; administrator diagnostics required" : null
@@ -725,7 +726,7 @@ function createProbeManager(server) {
       regionsCatalog: parser.REGIONS,
       ipMode: snap.ipMode || "0",
       concurrency: snap.concurrency === undefined ? 30 : snap.concurrency,
-      commandPreview: snap.commandPreview || "unlock-test -region 0,11 -conc 30 -show-active=false",
+      commandPreview: snap.commandPreview || "unlock-test -region 0,11 -conc 30 -show-active=false 2>/dev/null",
       updatedAt: snap.updatedAt,
       activeTask: publicTask(snap.activeTask),
       lastTask: publicTask(snap.lastTask),
@@ -758,7 +759,7 @@ function createProbeManager(server) {
           unlockedCount: Array.isArray(n.services) ? n.services.filter(function (s) { return s.unlocked; }).length : 0,
           webSshDisabled: Boolean(n.webSshDisabled),
           error: n.error || null,
-          rawPreview: (n.rawOutputSnippet || "").slice(0, 160)
+          rawPreview: (n.rawOutput !== undefined ? n.rawOutput : (n.rawOutputSnippet || "")).slice(0, 160)
         };
       }),
       recentLogs: memoryLogs.slice(-40)

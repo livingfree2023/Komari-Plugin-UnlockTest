@@ -70,6 +70,10 @@ test('RPC completion persists the parsed snapshot', async t => {
   await h.manager.triggerProbe(); await h.tick();
   assert.equal(h.snapshot().activeTask, null);
   assert.equal(h.snapshot().nodes.a.services.length, 33);
+  assert.ok(output.length > 600);
+  assert.equal(h.snapshot().nodes.a.rawOutput, output);
+  assert.equal(h.manager.getPublicSnapshot(true).nodes.a.rawOutput, output);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(h.dir,'snapshot.json'))).nodes.a.rawOutput, output);
   assert.equal(JSON.parse(fs.readFileSync(path.join(h.dir,'snapshot.json'))).nodes.a.services.length, 33);
 });
 
@@ -162,7 +166,7 @@ test('late polling responses after unload cannot mutate snapshots', async t => {
 test('remote shell matches Agent sh -s input, preserves exit code and supports exact-log recovery', t => {
   const h = harness(t);
   const bin = path.join(h.dir, 'unlock-test');
-  fs.writeFileSync(bin, '#!/bin/sh\ncat >/dev/null\nprintf "fixture output\\n"\nexit 7\n', {mode:0o700});
+  fs.writeFileSync(bin, '#!/bin/sh\ncat >/dev/null\nprintf "fixture output\\n"\nprintf "progress refresh\\r" >&2\nexit 7\n', {mode:0o700});
   const runId = 'test-' + process.pid + '-' + Date.now();
   const logDir = '/tmp/km-unlock-' + runId;
   t.after(() => fs.rmSync(logDir, {recursive:true,force:true}));
@@ -173,6 +177,7 @@ test('remote shell matches Agent sh -s input, preserves exit code and supports e
   const executed = spawnSync('sh', ['-s'], {input:command, encoding:'utf8', timeout:5000});
   assert.equal(executed.status, 7, executed.stderr);
   assert.equal(executed.stdout, 'fixture output\n');
+  assert.equal(executed.stderr, '');
   const recovered = spawnSync('sh', ['-s'], {input:h.lib.buildRecoveryCommand(runId), encoding:'utf8', timeout:5000});
   assert.equal(recovered.status, 7);
   assert.equal(recovered.stdout, executed.stdout);
@@ -181,7 +186,10 @@ test('remote shell matches Agent sh -s input, preserves exit code and supports e
 test('public snapshots exclude hidden task metadata and raw node output', async t => {
   const h = harness(t, {clients:[{uuid:'a',hidden:false},{uuid:'secret',hidden:true}]});
   await h.manager.triggerProbe();
+  h.snapshot().nodes.a = {uuid:'a', rawOutput:'private complete output', rawOutputSnippet:'legacy private output', services:[]};
   const publicView = JSON.stringify(h.manager.getPublicSnapshot(false));
+  assert.ok(!publicView.includes('private complete output'));
+  assert.ok(!publicView.includes('legacy private output'));
   assert.ok(!publicView.includes('secret'));
   assert.ok(!publicView.includes('clientMeta'));
   assert.ok(JSON.stringify(h.manager.getPublicSnapshot(true)).includes('secret'));
