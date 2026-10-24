@@ -583,7 +583,7 @@
 
   // ========= 数据拉取 (Zero-Blocking Read Path) =========
   async function fetchNodesAndSnapshot() {
-    if (fetching) return;
+    if (fetching) return false;
     fetching = true;
     try {
       const [nodesResp, snapResp, meResp] = await Promise.all([
@@ -625,10 +625,12 @@
       }
 
       syncNodesWithCurrentPage();
+      return true;
     } catch (err) {
       dataError = err.message || String(err);
       console.warn("[unlock-test] fetch snapshot failed:", err);
       renderServiceLogos();
+      return false;
     } finally {
       fetching = false;
     }
@@ -1104,8 +1106,12 @@
           debugPollTimer = null;
           return;
         }
-        await fetchNodesAndSnapshot();
+        const refreshed = await fetchNodesAndSnapshot();
         renderDebugModalContent();
+        if (refreshed && !snapshotData.activeTask && !localProbingActive) {
+          clearInterval(debugPollTimer);
+          debugPollTimer = null;
+        }
       }, 2000);
     }
     document.getElementById("km-ul-debug-btn").addEventListener("click", openDebugModal);
@@ -1154,6 +1160,12 @@
   function renderDebugModalContent() {
     const box = document.getElementById("km-ul-debug-content");
     if (!box) return;
+
+    const previousTerminal = box.querySelector(".km-ul-debug-terminal");
+    const previousTerminalScrollTop = previousTerminal ? previousTerminal.scrollTop : 0;
+    const previousTerminalWasAtBottom = previousTerminal
+      ? previousTerminal.scrollHeight - previousTerminal.clientHeight - previousTerminal.scrollTop <= 1
+      : false;
 
     const snap = snapshotData || {};
     const active = snap.activeTask;
@@ -1217,6 +1229,13 @@
     }
 
     box.innerHTML = lines.join("\n");
+
+    const terminal = box.querySelector(".km-ul-debug-terminal");
+    if (terminal && previousTerminal) {
+      terminal.scrollTop = previousTerminalWasAtBottom
+        ? terminal.scrollHeight
+        : previousTerminalScrollTop;
+    }
   }
 
   function escapeHTML(str) {
